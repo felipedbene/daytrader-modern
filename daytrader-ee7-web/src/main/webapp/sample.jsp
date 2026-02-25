@@ -1,4 +1,4 @@
-<!-- 
+<!--
  * (C) Copyright IBM Corporation 2015.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,9 +18,18 @@
 <%@ taglib prefix="x" uri="http://java.sun.com/jsp/jstl/xml"%>
 <%@ taglib prefix="sql" uri="http://java.sun.com/jsp/jstl/sql"%>
 <jsp:useBean id="now" class="java.util.Date" />
-<html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sample JSP</title>
+    <link rel="stylesheet" href="style.css" type="text/css">
+</head>
 <body>
-    Hello world JSP on
-    <fmt:formatDate value="${now}" dateStyle="full" />
+    <main class="dt-main">
+        <div class="dt-card" style="text-align:center;">
+            <p>Hello world JSP on <fmt:formatDate value="${now}" dateStyle="full" /></p>
+        </div>
+    </main>
 </body>
 </html>

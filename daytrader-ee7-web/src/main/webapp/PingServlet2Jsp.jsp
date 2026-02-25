@@ -1,4 +1,4 @@
-<!-- 
+<!--
  * (C) Copyright IBM Corporation 2015.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,27 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 -->
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<META HTTP-EQUIV="pragma" CONTENT="no-cache">
-<META http-equiv="Content-Style-Type" content="text/css">
-<!-- Don't cache on netscape! -->
-<title>PingJsp</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="pragma" content="no-cache">
+<title>Ping Servlet2JSP</title>
+<link rel="stylesheet" href="style.css">
 </head>
-<BODY>
+<body>
     <%!String initTime = (new java.util.Date()).toString();%>
     <jsp:useBean id="ab"
         type="com.ibm.websphere.samples.daytrader.web.prims.PingBean"
         scope="request" />
-    <HR>
-    <FONT size="+2" color="#000066"><BR> Ping Servlet2JSP:<BR>
-    </FONT>
-    <FONT size="+1" color="#000066">Init time: <%=initTime%></FONT>
-    <BR>
-    <BR>
-    <B>Message from Servlet: </B>
-    <%= ab.getMsg() %>
-
-</BODY>
+    <div class="dt-main-narrow" style="margin-top:2rem;">
+        <div class="dt-card">
+            <div class="dt-card-header">
+                <h2>Ping Servlet2JSP</h2>
+                <span class="dt-badge dt-badge-green">OK</span>
+            </div>
+            <div class="dt-stats-grid" style="grid-template-columns: 1fr 1fr;">
+                <div class="dt-stat">
+                    <div class="dt-stat-label">Init Time</div>
+                    <div class="dt-stat-value" style="font-size:0.875rem;"><%=initTime%></div>
+                </div>
+                <div class="dt-stat">
+                    <div class="dt-stat-label">Message from Servlet</div>
+                    <div class="dt-stat-value" style="font-size:0.875rem;"><%= ab.getMsg() %></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
 </html>

@@ -1,4 +1,4 @@
-<!-- 
+<!--
  * (C) Copyright IBM Corporation 2015.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,26 +23,26 @@
     try {
         QuoteDataBean quoteData = tAction.getQuote(symbol);
 %>
-<TR align="center" bgcolor="#fafcb6">
-    <TD><%=FinancialUtils.printQuoteLink(quoteData.getSymbol())%></TD>
-    <TD><%=quoteData.getCompanyName()%></TD>
-    <TD><%=quoteData.getVolume()%></TD>
-    <TD><%=quoteData.getLow() + " - " + quoteData.getHigh()%></TD>
-    <TD nowrap><%=quoteData.getOpen()%></TD>
-    <TD>$ <%=quoteData.getPrice()%></TD>
-    <TD><%=FinancialUtils.printGainHTML(new BigDecimal(quoteData.getChange()))%>
-        <%=FinancialUtils.printGainPercentHTML(FinancialUtils.computeGainPercent(quoteData.getPrice(), quoteData.getOpen()))%></TD>
-    <TD>
-        <FORM action="">
-            <INPUT type="submit" name="action" value="buy">
-            <INPUT type="hidden" name="symbol" value="<%=quoteData.getSymbol()%>">
-            <INPUT size="4" type="text" name="quantity" value="100">
-        </FORM>
-    </TD>
-</TR>
+<tr class="tableOddRow" style="text-align:center;">
+    <td><%=FinancialUtils.printQuoteLink(quoteData.getSymbol())%></td>
+    <td><%=quoteData.getCompanyName()%></td>
+    <td><%=quoteData.getVolume()%></td>
+    <td><%=quoteData.getLow() + " - " + quoteData.getHigh()%></td>
+    <td style="white-space:nowrap;"><%=quoteData.getOpen()%></td>
+    <td>$ <%=quoteData.getPrice()%></td>
+    <td><%=FinancialUtils.printGainHTML(new BigDecimal(quoteData.getChange()))%>
+        <%=FinancialUtils.printGainPercentHTML(FinancialUtils.computeGainPercent(quoteData.getPrice(), quoteData.getOpen()))%></td>
+    <td>
+        <form action="" style="display:flex;gap:0.25rem;align-items:center;justify-content:center;">
+            <input type="submit" name="action" value="buy" class="dt-btn dt-btn-sm">
+            <input type="hidden" name="symbol" value="<%=quoteData.getSymbol()%>">
+            <input size="4" type="text" name="quantity" value="100">
+        </form>
+    </td>
+</tr>
 
 <%
-    } catch (Exception e) { 
-        Log.error("displayQuote.jsp exception. Check that symbol: " + symbol + " exists in the database.", e); 
-    } 
+    } catch (Exception e) {
+        Log.error("displayQuote.jsp exception. Check that symbol: " + symbol + " exists in the database.", e);
+    }
 %>

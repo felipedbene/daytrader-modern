@@ -1,0 +1,54 @@
+name: Build & Deploy DayTrader to AIX
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+env:
+  LIBERTY_HOME: /opt/IBM/WebSphere/Liberty
+  MINIO_BUCKET: daytrader-artifacts
+  MINIO_ENDPOINT: http://minio-api.k8s.debene.name
+
+jobs:
+  build:
+    runs-on: [self-hosted, homelab]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build with Maven
+        run: mvn clean package -pl daytrader-ee7-web -am -DskipTests
+
+      - name: Upload WAR to MinIO
+        env:
+          MINIO_ACCESS_KEY: ${{ secrets.MINIO_ACCESS_KEY }}
+          MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
+        run: |
+          # Install mc (MinIO client) if not present
+          if ! command -v mc &>/dev/null; then
+            curl -sL https://dl.min.io/client/mc/release/linux-amd64/mc -o /usr/local/bin/mc
+            chmod +x /usr/local/bin/mc
+          fi
+
+          # Configure MinIO alias
+          mc alias set homelab "$MINIO_ENDPOINT" "$MINIO_ACCESS_KEY" "$MINIO_SECRET_KEY"
+
+          # Create bucket if needed
+          mc mb --ignore-existing homelab/$MINIO_BUCKET
+
+          # Upload WAR with timestamp and latest
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          WAR_FILE=$(ls daytrader-ee7-web/target/*.war | head -1)
+
+          mc cp "$WAR_FILE" "homelab/$MINIO_BUCKET/daytrader-${TIMESTAMP}.war"
+          mc cp "$WAR_FILE" "homelab/$MINIO_BUCKET/daytrader-latest.war"
+
+          echo "✅ Uploaded to MinIO: daytrader-${TIMESTAMP}.war"
+          echo "📦 Latest: ${MINIO_ENDPOINT}/${MINIO_BUCKET}/daytrader-latest.war"

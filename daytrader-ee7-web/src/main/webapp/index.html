@@ -1,4 +1,5 @@
-<!-- 
+<!DOCTYPE html>
+<!--
  * (C) Copyright IBM Corporation 2015.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,25 +14,74 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 -->
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
-<HTML>
-<HEAD>
-<META http-equiv="Content-Style-Type" content="text/css">
-<link rel="shortcut icon" href="./favicon.ico" />
-<TITLE>DayTrader</TITLE>
-</HEAD>
-<FRAMESET rows="90,*,58" cols="785" framespacing="0"
-    border="0">
-    <FRAME src="./header.html" scrolling="NO" name="TradeFrameTop"
-        noresize marginwidth="0">
-    <FRAME src="./contentHome.html" scrolling="AUTO"
-        name="TradeMainContent" noresize>
-    <FRAME src="./footer.html" name="TradeFrameBottom" scrolling="NO"
-        noresize>
-    <NOFRAMES>
-        <BODY>
-            <P>Need browser which supports frames to see this page</P>
-        </BODY>
-    </NOFRAMES>
-</FRAMESET>
-</HTML>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DayTrader</title>
+    <link rel="stylesheet" href="style.css" type="text/css">
+    <link rel="shortcut icon" href="./favicon.ico">
+</head>
+<body>
+    <nav class="dt-nav">
+        <a href="index.html" class="dt-brand">
+            <span class="dt-brand-icon">DT</span>
+            DayTrader
+        </a>
+        <ul class="dt-nav-links">
+            <li><a href="index.html" class="active">Home</a></li>
+            <li><a href="app">Trading &amp; Portfolios</a></li>
+            <li><a href="configure.html">Configuration</a></li>
+            <li><a href="web_prmtv.html">Primitives</a></li>
+            <li><a href="docs/tradeFAQ.html">FAQ</a></li>
+        </ul>
+    </nav>
+
+    <main class="dt-main">
+        <div class="dt-card">
+            <div class="dt-card-header">
+                <h2>Overview</h2>
+            </div>
+            <div class="dt-card-body">
+                <p>The DayTrader performance benchmark sample provides a suite of workloads for characterizing performance of
+                    Java EE Application Servers. The workloads consist of an end-to-end web application and a full set of primitives.
+                    The applications are a collection of Java classes, Java Servlets, JavaServer Pages, and Enterprise Java Beans
+                    built to open Java EE APIs. Together these provide versatile and portable test cases designed to measure
+                    aspects of scalability and performance.</p>
+            </div>
+        </div>
+
+        <div class="dt-card">
+            <div class="dt-card-header">
+                <h2>Architecture</h2>
+            </div>
+            <div class="dt-card-body" style="text-align:center;">
+                <img src="images/daytrader_simple_arch.gif" alt="DayTrader Architecture" style="max-width:100%;height:auto;border-radius:4px;">
+                <p style="margin-top:1rem;"><strong>DayTrader J2EE Components</strong><br>Model-View-Controller Architecture</p>
+            </div>
+        </div>
+
+        <div class="dt-card">
+            <div class="dt-card-header">
+                <h2>DayTrader</h2>
+            </div>
+            <div class="dt-card-body">
+                <p>DayTrader is an end-to-end benchmark and performance sample application. It provides a real world Java EE workload.</p>
+                <p>DayTrader's design spans Java EE 7, including the new WebSockets specification. Other Java EE features include
+                    JSPs, Servlets, EJBs, JPA, JDBC, JSF, JMS, MDBs, and transactions (synchronous and asynchronous/2-phase commit).</p>
+
+                <h3>Primitives</h3>
+                <p>The <a href="web_prmtv.html">Primitives</a> provide a set of workloads to individually test various components
+                    of an Application Server. The primitives leverage the DayTrader application infrastructure to test specific
+                    Java EE components such as the servlet engine, JSP support, EJB Entity, Session and Message Driven beans,
+                    HTTP Session support and more.</p>
+                <p>Additional overview information is included in the <a href="docs/tradeFAQ.html">FAQ</a>.</p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="dt-footer">
+        Apache DayTrader Performance Benchmark Sample
+    </footer>
+</body>
+</html>

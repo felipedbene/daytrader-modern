@@ -1,5 +1,5 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
-<!-- 
+<!DOCTYPE html>
+<!--
  * (C) Copyright IBM Corporation 2015.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,9 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 -->
-<html>
+<html lang="en">
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PingJspEL</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
     <%@ page
@@ -27,7 +30,6 @@
     String initTime = new java.util.Date().toString();%>
 
     <%
-        // setup some variables to work with later
         int someint1 = TradeConfig.rndInt(100) + 1;
         pageContext.setAttribute("someint1", new Integer(someint1));
         int someint2 = TradeConfig.rndInt(100) + 1;
@@ -54,76 +56,103 @@
         pageContext.setAttribute("quoteData", quoteData);
     %>
 
-    <HR>
-    <BR>
-    <FONT size="+2" color="#000066">PING JSP EL:<BR></FONT>
-    <FONT size="+1" color="#000066">Init time: <%=initTime%></FONT>
-    <P>
-        <B>Hit Count: <%=hitCount++%></B>
-    </P>
-    <HR>
+    <div class="dt-main-narrow" style="margin-top:2rem;">
+        <div class="dt-card">
+            <div class="dt-card-header">
+                <h2>Ping JSP EL</h2>
+                <span class="dt-badge dt-badge-green">OK</span>
+            </div>
+            <div class="dt-stats-grid" style="grid-template-columns: 1fr 1fr;">
+                <div class="dt-stat">
+                    <div class="dt-stat-label">Init Time</div>
+                    <div class="dt-stat-value" style="font-size:0.875rem;"><%=initTime%></div>
+                </div>
+                <div class="dt-stat">
+                    <div class="dt-stat-label">Hit Count</div>
+                    <div class="dt-stat-value"><%=hitCount++%></div>
+                </div>
+            </div>
+        </div>
 
-    <P>
+        <div class="dt-card">
+            <div class="dt-card-header"><h3>Variables</h3></div>
+            <div class="dt-stats-grid" style="grid-template-columns: 1fr 1fr 1fr 1fr;">
+                <div class="dt-stat">
+                    <div class="dt-stat-label">someint1</div>
+                    <div class="dt-stat-value"><%=someint1%></div>
+                </div>
+                <div class="dt-stat">
+                    <div class="dt-stat-label">someint2</div>
+                    <div class="dt-stat-value"><%=someint2%></div>
+                </div>
+                <div class="dt-stat">
+                    <div class="dt-stat-label">somefloat1</div>
+                    <div class="dt-stat-value"><%=somefloat1%></div>
+                </div>
+                <div class="dt-stat">
+                    <div class="dt-stat-label">somefloat2</div>
+                    <div class="dt-stat-value"><%=somefloat2%></div>
+                </div>
+            </div>
+        </div>
 
-        someint1 =
-        <%=someint1%><br /> someint2 =
-        <%=someint2%><br /> somefloat1 =
-        <%=somefloat1%><br /> somefloat2 =
-        <%=somefloat2%><br />
-    <P>
-    <HR>
-
-    <table border="1">
-        <thead>
-            <tr>
-                <th>EL Type</th>
-                <th>EL Expressions</th>
-                <th>Result</th>
-            <tr>
-        </thead>
-        <tr>
-            <td>Integer Arithmetic</td>
-            <td>\${someint1 + someint2 - someint1 * someint2 mod
-                someint1}</td>
-            <td>${someint1 + someint2 - someint1 * someint2 mod
-                someint1}</td>
-        </tr>
-        <tr>
-            <td>Floating Point Arithmetic</td>
-            <td>\${somefloat1 + somefloat2 - somefloat1 *
-                somefloat2 / somefloat1}</td>
-            <td>${somefloat1 + somefloat2 - somefloat1 * somefloat2
-                / somefloat1}</td>
-        </tr>
-        <tr>
-            <td>Logical Operations</td>
-            <td>\${(someint1 < someint2) && (someint1 <= someint2)
-                || (someint1 == someint2) && !Boolean.FALSE}</td>
-            <td>${(someint1 < someint2) && (someint1 <= someint2)
-                || (someint1 == someint2) && !Boolean.FALSE}</td>
-        </tr>
-        <tr>
-            <td>Indexing Operations</td>
-            <td>\${quoteData3.symbol}<br />
-                \${quoteData[2].symbol}<br /> \${quoteData4["symbol"]}<br />
-                \${header["host"]}<br /> \${header.host}<br />
-            </td>
-            <td>${quoteData3.symbol}<br /> ${quoteData[1].symbol}<br />
-                ${quoteData4["symbol"]}<br /> ${header["host"]}<br />
-                ${header.host}
-            </td>
-        </tr>
-        <tr>
-            <td>Variable Scope Tests</td>
-            <td>\${(quoteData3 == null) ? "null" : quoteData3}<br />
-                \${(noSuchVariableAtAnyScope == null) ? "null" :
-                noSuchVariableAtAnyScope}
-            </td>
-            <td>${(quoteData3 == null) ? "null" : quoteData3}<br />
-                ${(noSuchVariableAtAnyScope == null) ? "null" :
-                noSuchVariableAtAnyScope}
-            </td>
-        </tr>
-    </table>
+        <div class="dt-card">
+            <div class="dt-card-header"><h3>EL Expression Tests</h3></div>
+            <table class="dt-test-table">
+                <thead>
+                    <tr>
+                        <th>EL Type</th>
+                        <th>EL Expression</th>
+                        <th>Result</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Integer Arithmetic</td>
+                        <td style="font-family:var(--font-mono);font-size:0.8125rem;">\${someint1 + someint2 - someint1 * someint2 mod someint1}</td>
+                        <td style="font-family:var(--font-mono);">${someint1 + someint2 - someint1 * someint2 mod someint1}</td>
+                    </tr>
+                    <tr>
+                        <td>Floating Point Arithmetic</td>
+                        <td style="font-family:var(--font-mono);font-size:0.8125rem;">\${somefloat1 + somefloat2 - somefloat1 * somefloat2 / somefloat1}</td>
+                        <td style="font-family:var(--font-mono);">${somefloat1 + somefloat2 - somefloat1 * somefloat2 / somefloat1}</td>
+                    </tr>
+                    <tr>
+                        <td>Logical Operations</td>
+                        <td style="font-family:var(--font-mono);font-size:0.8125rem;">\${(someint1 &lt; someint2) &amp;&amp; (someint1 &lt;= someint2) || (someint1 == someint2) &amp;&amp; !Boolean.FALSE}</td>
+                        <td style="font-family:var(--font-mono);">${(someint1 < someint2) && (someint1 <= someint2) || (someint1 == someint2) && !Boolean.FALSE}</td>
+                    </tr>
+                    <tr>
+                        <td>Indexing Operations</td>
+                        <td style="font-family:var(--font-mono);font-size:0.8125rem;">
+                            \${quoteData3.symbol}<br/>
+                            \${quoteData[2].symbol}<br/>
+                            \${quoteData4["symbol"]}<br/>
+                            \${header["host"]}<br/>
+                            \${header.host}
+                        </td>
+                        <td style="font-family:var(--font-mono);">
+                            ${quoteData3.symbol}<br/>
+                            ${quoteData[1].symbol}<br/>
+                            ${quoteData4["symbol"]}<br/>
+                            ${header["host"]}<br/>
+                            ${header.host}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Variable Scope Tests</td>
+                        <td style="font-family:var(--font-mono);font-size:0.8125rem;">
+                            \${(quoteData3 == null) ? "null" : quoteData3}<br/>
+                            \${(noSuchVariableAtAnyScope == null) ? "null" : noSuchVariableAtAnyScope}
+                        </td>
+                        <td style="font-family:var(--font-mono);">
+                            ${(quoteData3 == null) ? "null" : quoteData3}<br/>
+                            ${(noSuchVariableAtAnyScope == null) ? "null" : noSuchVariableAtAnyScope}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </body>
 </html>

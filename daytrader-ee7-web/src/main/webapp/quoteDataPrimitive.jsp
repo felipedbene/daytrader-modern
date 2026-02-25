@@ -1,5 +1,5 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
-<!-- 
+<!DOCTYPE html>
+<!--
  * (C) Copyright IBM Corporation 2015.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,12 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 -->
-<html>
+<html lang="en">
 <head>
-<META HTTP-EQUIV="pragma" CONTENT="no-cache">
-<META http-equiv="Content-Style-Type" content="text/css">
-<!-- Don't cache on netscape! -->
-<title>Quote Data Primitive (PingServet2Session2Entity2JSP)</title>
+    <meta charset="UTF-8">
+    <meta http-equiv="pragma" content="no-cache">
+    <title>Quote Data Primitive (PingServlet2Session2Entity2JSP)</title>
+    <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body>
     <%@ page
@@ -30,21 +30,20 @@
     <%
         QuoteDataBean quoteData = (QuoteDataBean) request.getAttribute("quoteData");
     %>
-    <HR>
-    <BR>
-    <FONT size="+2" color="#000066">Quote Data Primitive
-        (PingServlet2Session2EntityJSP):<BR>
-    </FONT>
-    <FONT size="+1" color="#000066">Init time: <%=initTime%></FONT>
-    <%
-        hitCount++;
-    %>
-    <P>
-        <B>Hit Count: <%=hitCount%></B>
-    </P>
-    <HR>
-    Quote Information
-    <BR>
-    <BR><%=quoteData.toHTML()%>
+    <main class="dt-main">
+        <div class="dt-card">
+            <div class="dt-card-header">
+                <h3>Quote Data Primitive (PingServlet2Session2EntityJSP)</h3>
+            </div>
+            <p style="color:var(--text-secondary);">Init time: <%=initTime%></p>
+            <%
+                hitCount++;
+            %>
+            <p><strong>Hit Count: <%=hitCount%></strong></p>
+            <hr>
+            <p>Quote Information</p>
+            <%=quoteData.toHTML()%>
+        </div>
+    </main>
 </body>
 </html>

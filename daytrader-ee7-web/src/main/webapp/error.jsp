@@ -1,4 +1,4 @@
-<!-- 
+<!--
  * (C) Copyright IBM Corporation 2015.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,45 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 -->
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE html>
 <%@ page
     import="java.io.StringWriter,
                  java.io.PrintWriter"%>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DayTrader Error</title>
+    <link rel="stylesheet" href="style.css" type="text/css">
+    <link rel="shortcut icon" href="./favicon.ico">
+</head>
+<body>
+    <nav class="dt-nav">
+        <a href="index.html" class="dt-brand">
+            <span class="dt-brand-icon">DT</span>
+            DayTrader
+        </a>
+    </nav>
 
-<TABLE width="740">
-    <TBODY>
-        <TR>
-            <TD bgcolor="#c93333" align="left" width="640" height="10"><B><FONT
-                    color="#ffffff">DayTrader
-                        Error</FONT></B></TD>
-            <TD align="center" bgcolor="#000000" width="100" height="10"><FONT
-                color="#ffffff"><B>DayTrader</B></FONT></TD>
-        </TR>
-</TABLE>
-<DIV align="left"></DIV>
-<TABLE width="740">
-    <TBODY>
-        <TR>
-            <TD width="3"></TD>
-            <TD>
-                <HR>
-            </TD>
-            <TD width="3"></TD>
-        </TR>
-        <TR>
-            <TD bgcolor="#e7e4e7" rowspan="4" width="3"></TD>
-            <TD><B><FONT color="#000000">An Error has
-                        occurred during DayTrader processing</FONT><FONT
-                    size="-2">.</FONT></B><BR> The
-                stack trace detailing the error follows.
-                <p>
-                    <b>Please consult the application server error
-                        logs for further details.</b>
-                </p></TD>
-            <TD bgcolor="#e7e4e7" width="3" rowspan="4"></TD>
-        </TR>
-        <TR>
-            <TD><FONT size="-1"> <%
+    <main class="dt-main">
+        <div class="dt-card">
+            <div class="dt-card-header">
+                <h3>Error</h3>
+            </div>
+            <div class="dt-alert dt-alert-danger">
+                <strong>An error has occurred during DayTrader processing.</strong>
+                <p>The stack trace detailing the error follows.</p>
+                <p><strong>Please consult the application server error logs for further details.</strong></p>
+            </div>
+            <div style="padding:1rem;font-family:var(--font-mono);font-size:0.8125rem;color:var(--text-secondary);overflow-x:auto;">
+                <FONT size="-1"> <%
      String message = null;
      int status_code = -1;
      String exception_info = null;
@@ -83,11 +76,11 @@
          } else {
              status_code = status.intValue();
          }
-        
+
          exception_info = theException.toString();
          exception_info = exception_info + "<br>" + sw.toString();
          sw.close();
-         
+
      } catch (Exception e) {
          e.printStackTrace();
      }
@@ -97,26 +90,13 @@
      out.println("<br><b>Message:</b>" + message);
      out.println("<br><b>Exception:</b>" + exception_info);
  %>
-            </FONT><FONT size="-1"> </FONT></TD>
-        </TR>
-        <TR>
-            <TD align="left"></TD>
-        </TR>
-        <TR>
-            <TD>
-                <HR>
-            </TD>
-        </TR>
-    </TBODY>
-</TABLE>
-<TABLE>
-    <TBODY>
-        <TR>
-            <TD bgcolor="#c93333" align="left" width="640" height="10"><B><FONT
-                    color="#ffffff">DayTrader
-                        Error</FONT></B></TD>
-            <TD align="center" bgcolor="#000000" width="100" height="10"><FONT
-                color="#ffffff"><B>DayTrader</B></FONT></TD>
-        </TR>
-    </TBODY>
-</TABLE>
+                </FONT>
+            </div>
+        </div>
+    </main>
+
+    <footer class="dt-footer">
+        Apache DayTrader Performance Benchmark Sample
+    </footer>
+</body>
+</html>

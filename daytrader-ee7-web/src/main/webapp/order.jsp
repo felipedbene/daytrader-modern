@@ -1,233 +1,127 @@
-<!-- 
- * (C) Copyright IBM Corporation 2015.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
--->
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML>
-<HEAD>
-<META http-equiv="Content-Style-Type" content="text/css">
-<TITLE>DayTrader Order information</TITLE>
-<link rel="shortcut icon" href="./favicon.ico" />
-</HEAD>
-<BODY bgcolor="#ffffff" link="#000099" vlink="#000099">
-    <%@ page
-        import="java.util.Collection, 
-                java.util.Iterator,com.ibm.websphere.samples.daytrader.entities.OrderDataBean,com.ibm.websphere.samples.daytrader.util.FinancialUtils"
-        session="true" isThreadSafe="true" isErrorPage="false"%>
-    <jsp:useBean id="results" scope="request" type="java.lang.String" />
+<!DOCTYPE html>
+<%@ page
+    import="java.util.Collection,
+            java.util.Iterator,com.ibm.websphere.samples.daytrader.entities.OrderDataBean,com.ibm.websphere.samples.daytrader.util.FinancialUtils"
+    session="true" isThreadSafe="true" isErrorPage="false"%>
+<jsp:useBean id="results" scope="request" type="java.lang.String" />
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DayTrader Order Information</title>
+    <link rel="stylesheet" href="style.css" type="text/css">
+    <link rel="shortcut icon" href="./favicon.ico">
+</head>
+<body>
+    <nav class="dt-nav">
+        <a href="app?action=home" class="dt-brand">
+            <span class="dt-brand-icon">DT</span>
+            DayTrader
+        </a>
+        <ul class="dt-nav-links">
+            <li><a href="app?action=home">Home</a></li>
+            <li><a href="app?action=account">Account</a></li>
+            <li><a href="app?action=mksummary">Market Summary</a></li>
+            <li><a href="app?action=portfolio">Portfolio</a></li>
+            <li><a href="app?action=quotes&amp;symbols=s:0,s:1,s:2,s:3,s:4">Quotes/Trade</a></li>
+            <li><a href="app?action=logout">Logout</a></li>
+        </ul>
+    </nav>
 
-    <TABLE height="54">
-        <TBODY>
-            <TR>
-                <TD bgcolor="#c93333" align="left" width="640"
-                    height="10" colspan=6><B><FONT
-                        color="#ffffff">DayTrader New Orders</FONT></B></TD>
-                <TD align="center" bgcolor="#000000" width="100"
-                    height="10"><FONT
-                    color="#ffffff"><B>DayTrader</B></FONT></TD>
-            </TR>
-            <TR style="font-size:12pt;" align="left">
-                <TD><B><A href="app?action=home">Home</A></B></TD>
-                <TD><B><A href="app?action=account">Account</A></B></TD>
-                <TD><B><A href="app?action=mksummary">Market Summary</A></B></TD>
-                <TD><B><A href="app?action=portfolio">Portfolio</A></B></TD>
-                <TD><B><A href="app?action=quotes&amp;symbols=s:0,s:1,s:2,s:3,s:4">Quotes/Trade</A></B></TD>
-                <TD><B><A href="app?action=logout">Logoff</A></B></TD>
-                <TD></TD>
-            </TR>
-            <TR>
-                <TD align="right" colspan="7">
-                    <HR> <FONT color="#ff0000" size="-2"><%=new java.util.Date()%></FONT>
-                </TD>
-            </TR>
-            <%
-                Collection<?> closedOrders = (Collection<?>) request.getAttribute("closedOrders");
-                if ((closedOrders != null) && (closedOrders.size() > 0)) {
-            %>
-            <TR>
-                <TD colspan="6" bgcolor="#ff0000"><BLINK>
-                        <B><FONT color="#ffffff">Alert: The
-                                following Order(s) have completed.</FONT></B>
-                    </BLINK></TD>
-            </TR>
-            <TR align="center">
-                <TD colspan="6">
-                    <TABLE border="1" style="font-size: smaller">
-                        <TBODY>
-                            <%
-                                Iterator<?> it = closedOrders.iterator();
-                                    while (it.hasNext()) {
-                                        OrderDataBean closedOrderData = (OrderDataBean) it.next();
-                            %>
-                            <TR align="center">
-                                <TD><A href="docs/glossary.html">order
-                                        ID</A></TD>
-                                <TD><A href="docs/glossary.html">order
-                                        status</A></TD>
-                                <TD><A href="docs/glossary.html">creation
-                                        date</A></TD>
-                                <TD><A href="docs/glossary.html">completion
-                                        date</A></TD>
-                                <TD><A href="docs/glossary.html">txn
-                                        fee</A></TD>
-                                <TD><A href="docs/glossary.html">type</A></TD>
-                                <TD><A href="docs/glossary.html">symbol</A></TD>
-                                <TD><A href="docs/glossary.html">quantity</A></TD>
-                            </TR>
-                            <TR align="center">
-                                <TD><%=closedOrderData.getOrderID()%></TD>
-                                <TD><%=closedOrderData.getOrderStatus()%></TD>
-                                <TD><%=closedOrderData.getOpenDate()%></TD>
-                                <TD><%=closedOrderData.getCompletionDate()%></TD>
-                                <TD><%=closedOrderData.getOrderFee()%></TD>
-                                <TD><%=closedOrderData.getOrderType()%></TD>
-                                <TD><%=FinancialUtils.printQuoteLink(closedOrderData.getSymbol())%></TD>
-                                <TD><%=closedOrderData.getQuantity()%></TD>
-                            </TR>
-                            <%
-                                }
-                            %>
+    <main class="dt-main">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+            <span class="text-muted" style="font-size:0.8125rem;"><%=new java.util.Date()%></span>
+        </div>
 
-                        </TBODY>
-                    </TABLE>
-                </TD>
-            </TR>
-            <%
-                }
-            %>
-        </TBODY>
-    </TABLE>
-    <TABLE width="650">
-        <TBODY>
-            <TR>
-                <TD>
-                    <TABLE width="100%">
-                        <TBODY>
-                            <TR>
-                                <TD></TD>
-                            </TR>
-                            <%
-                                OrderDataBean orderData = (OrderDataBean) request.getAttribute("orderData");
-                                if (orderData != null) {
-                            %>
-                            <TR>
-                                <TD align="left" bgcolor="#cccccc"><B>New
-                                        Order</B></TD>
-                            </TR>
-                            <TR>
-                                <TD align="left"><FONT
-                                    color="#cc0000"><B><BR>
-                                            Order <%=orderData.getOrderID()%></B>
-                                        to <B><%=orderData.getOrderType()%>
-                                            <%=orderData.getQuantity()%></B>
-                                        shares of <B><%=orderData.getSymbol()%></B>
-                                        has been submitted for
-                                        processing. </FONT><BR> <BR>
-                                    <FONT color="#000000">Order <FONT
-                                        color="#000000"><B><%=orderData.getOrderID()%></B></FONT>
-                                        details:
-                                </FONT></TD>
-                            </TR>
-                            <TR>
-                                <TD align="center">
-                                    <TABLE border="1"
-                                        style="font-size: smaller">
-                                        <TBODY>
-                                            <TR align="center">
-                                                <TD><A
-                                                    href="docs/glossary.html">order
-                                                        ID</A></TD>
-                                                <TD><A
-                                                    href="docs/glossary.html">order
-                                                        status</A></TD>
-                                                <TD><A
-                                                    href="docs/glossary.html">creation
-                                                        date</A></TD>
-                                                <TD><A
-                                                    href="docs/glossary.html">completion
-                                                        date</A></TD>
-                                                <TD><A
-                                                    href="docs/glossary.html">txn
-                                                        fee</A></TD>
-                                                <TD><A
-                                                    href="docs/glossary.html">type</A></TD>
-                                                <TD><A
-                                                    href="docs/glossary.html">symbol</A></TD>
-                                                <TD><A
-                                                    href="docs/glossary.html">quantity</A></TD>
-                                            </TR>
-                                            <TR align="center"
-                                                bgcolor="#fafcb6">
-                                                <TD><%= orderData.getOrderID()%></TD>
-                                                <TD><%= orderData.getOrderStatus()%></TD>
-                                                <TD><%= orderData.getOpenDate()%></TD>
-                                                <TD><%= orderData.getCompletionDate()%></TD>
-                                                <TD><%= orderData.getOrderFee()%></TD>
-                                                <TD><%= orderData.getOrderType()%></TD>
-                                                <TD><%= FinancialUtils.printQuoteLink(orderData.getSymbol()) %></TD>
-                                                <TD><%= orderData.getQuantity()%></TD>
-                                            </TR>
-                                        </TBODY>
-                                    </TABLE>
-                                </TD>
-                            </TR>
-                            <% 
- }
- %>
-                        </TBODY>
-                    </TABLE>
-                </TD>
-            </TR>
-        </TBODY>
-    </TABLE>
-    <TABLE height="54" style="font-size: smaller">
-        <TBODY>
-            <TR>
-                <TD colspan="2">
-                    <HR>
-                </TD>
-            </TR>
-            <TR>
-                <TD colspan="2">
-                    <TABLE width="100%" style="font-size: smaller">
-                        <TBODY>
-                            <TR>
-                                <TD>Note: Click any <A
-                                    href="docs/glossary.html">symbol</A>
-                                    for a quote or to trade.
-                                </TD>
-                                <TD align="right"><FORM>
-                                        <INPUT type="submit"
-                                            name="action" value="quotes">
-                                        <INPUT size="20" type="text"
-                                            name="symbols"
-                                            value="s:0, s:1, s:2, s:3, s:4">
-                                    </FORM></TD>
-                            </TR>
-                        </TBODY>
-                    </TABLE>
-                </TD>
-            </TR>
-            <TR>
-                <TD bgcolor="#c93333" align="left" width="640"
-                    height="10"><B><FONT
-                        color="#ffffff">DayTrader New Orders</FONT></B></TD>
-                <TD align="center" bgcolor="#000000" width="100"
-                    height="10"><FONT
-                    color="#ffffff"><B>DayTrader</B></FONT></TD>
-            </TR>
-        </TBODY>
-    </TABLE>
-</BODY>
-</HTML>
+        <%
+            Collection<?> closedOrders = (Collection<?>) request.getAttribute("closedOrders");
+            if ((closedOrders != null) && (closedOrders.size() > 0)) {
+        %>
+        <div class="dt-alert dt-alert-warning">
+            <strong>Alert:</strong> The following order(s) have completed.
+            <table class="table" style="margin-top:0.5rem;">
+                <thead>
+                    <tr class="tableHeader">
+                        <td>Order ID</td><td>Status</td><td>Opened</td><td>Completed</td><td>Fee</td><td>Type</td><td>Symbol</td><td>Quantity</td>
+                    </tr>
+                </thead>
+                <tbody>
+                <%
+                    Iterator<?> it = closedOrders.iterator();
+                    while (it.hasNext()) {
+                        OrderDataBean closedOrderData = (OrderDataBean) it.next();
+                %>
+                    <tr class="tableOddRow">
+                        <td><%=closedOrderData.getOrderID()%></td>
+                        <td><%=closedOrderData.getOrderStatus()%></td>
+                        <td><%=closedOrderData.getOpenDate()%></td>
+                        <td><%=closedOrderData.getCompletionDate()%></td>
+                        <td><%=closedOrderData.getOrderFee()%></td>
+                        <td><%=closedOrderData.getOrderType()%></td>
+                        <td><%=FinancialUtils.printQuoteLink(closedOrderData.getSymbol())%></td>
+                        <td><%=closedOrderData.getQuantity()%></td>
+                    </tr>
+                <%
+                    }
+                %>
+                </tbody>
+            </table>
+        </div>
+        <%
+            }
+        %>
+
+        <%
+            OrderDataBean orderData = (OrderDataBean) request.getAttribute("orderData");
+            if (orderData != null) {
+        %>
+        <div class="dt-card">
+            <div class="dt-card-header">
+                <h3>New Order</h3>
+            </div>
+            <div class="dt-alert dt-alert-success">
+                Order <strong><%=orderData.getOrderID()%></strong> to <strong><%=orderData.getOrderType()%> <%=orderData.getQuantity()%></strong> shares of <strong><%=orderData.getSymbol()%></strong> has been submitted for processing.
+            </div>
+            <p style="color:var(--text-secondary);">Order <strong><%=orderData.getOrderID()%></strong> details:</p>
+            <div style="overflow-x:auto;">
+                <table class="table">
+                    <thead>
+                        <tr class="tableHeader">
+                            <td>Order ID</td><td>Status</td><td>Opened</td><td>Completed</td><td>Fee</td><td>Type</td><td>Symbol</td><td>Quantity</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="tableOddRow">
+                            <td><%= orderData.getOrderID()%></td>
+                            <td><%= orderData.getOrderStatus()%></td>
+                            <td><%= orderData.getOpenDate()%></td>
+                            <td><%= orderData.getCompletionDate()%></td>
+                            <td><%= orderData.getOrderFee()%></td>
+                            <td><%= orderData.getOrderType()%></td>
+                            <td><%= FinancialUtils.printQuoteLink(orderData.getSymbol()) %></td>
+                            <td><%= orderData.getQuantity()%></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <%
+            }
+        %>
+
+        <div class="dt-card">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span class="text-muted">Click any <a href="docs/glossary.html">symbol</a> for a quote or to trade.</span>
+                <form style="display:flex;gap:0.5rem;align-items:center;">
+                    <input size="20" type="text" name="symbols" value="s:0, s:1, s:2, s:3, s:4">
+                    <input type="submit" name="action" value="quotes">
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <footer class="dt-footer">
+        Apache DayTrader Performance Benchmark Sample
+    </footer>
+</body>
+</html>
