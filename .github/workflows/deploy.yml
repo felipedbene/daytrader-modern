@@ -62,3 +62,30 @@ jobs:
 
           echo "✅ Uploaded to MinIO: daytrader-${TIMESTAMP}.war"
           echo "📦 Latest: ${MINIO_ENDPOINT}/${MINIO_BUCKET}/daytrader-latest.war"
+
+  deploy:
+    needs: build
+    runs-on: [self-hosted, homelab]
+    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/master'
+    steps:
+      - name: Deploy WAR to AIX
+        env:
+          AIX_HOST: ${{ secrets.AIX_HOST }}
+          AIX_PASSWORD: ${{ secrets.AIX_PASSWORD }}
+        run: |
+          which sshpass || (apt-get update -qq && apt-get install -y -qq sshpass)
+
+          export SSHPASS="$AIX_PASSWORD"
+          SSH="sshpass -e ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PubkeyAuthentication=no root@$AIX_HOST"
+
+          # Download latest WAR from MinIO
+          $SSH "curl -sk https://minio-api.k8s.debene.name/daytrader-artifacts/daytrader-latest.war \
+            -o /opt/IBM/WebSphere/Liberty/usr/servers/defaultServer/dropins/daytrader-ee7-web.war"
+
+          # Restart Liberty
+          $SSH "/opt/IBM/WebSphere/Liberty/bin/server stop defaultServer 2>/dev/null || true"
+          $SSH "/opt/IBM/WebSphere/Liberty/bin/server start defaultServer"
+
+          # Health check
+          sleep 15
+          $SSH "curl -sk https://localhost:9443/daytrader/ | head -5" && echo "✅ Deployed!" || echo "⚠️ Health check failed"
