@@ -44,7 +44,7 @@
                 <p><strong>Please consult the application server error logs for further details.</strong></p>
             </div>
             <div style="padding:1rem;font-family:var(--font-mono);font-size:0.8125rem;color:var(--text-secondary);overflow-x:auto;">
-                <FONT size="-1"> <%
+                <%
      String message = null;
      int status_code = -1;
      String exception_info = null;
@@ -90,7 +90,6 @@
      out.println("<br><b>Message:</b>" + message);
      out.println("<br><b>Exception:</b>" + exception_info);
  %>
-                </FONT>
             </div>
         </div>
     </main>

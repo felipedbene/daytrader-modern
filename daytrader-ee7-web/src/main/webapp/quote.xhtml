@@ -1,4 +1,4 @@
-<!-- 
+<!--
  * (C) Copyright IBM Corporation 2015.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,277 +15,171 @@
 -->
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html  xmlns="http://www.w3.org/1999/xhtml" 
-       xmlns:h="http://xmlns.jcp.org/jsf/html" 
+<html  xmlns="http://www.w3.org/1999/xhtml"
+       xmlns:h="http://xmlns.jcp.org/jsf/html"
        xmlns:f="http://xmlns.jcp.org/jsf/core"
-       xmlns:ui="http://xmlns.jcp.org/jsf/facelets" 
+       xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
        xmlns:fn="http://xmlns.jcp.org/jsp/jstl/functions">
 <h:head>
 	<title>DayTrader Quotes</title>
-	<link rel="stylesheet" href="style-jsf.css" type="text/css" />
+	<link rel="stylesheet" href="style.css" type="text/css" />
 	<link rel="shortcut icon" href="./favicon.ico" />
 </h:head>
 <h:body>
 
-	<div id="page-wrap">
-		<h:form id="quotes">
-			<div id="header">
-				<img src="images/DayTraderHead_blue.gif" style="display: block; margin-left: auto; margin-right: auto" />
+	<h:form id="quotes">
+		<nav class="dt-nav">
+			<a href="tradehome.faces" class="dt-brand">
+				<span class="dt-brand-icon">DT</span>
+				DayTrader
+			</a>
+			<ul class="dt-nav-links">
+				<li><h:outputLink value="tradehome.faces">Home</h:outputLink></li>
+				<li><h:outputLink value="account.faces">Account</h:outputLink></li>
+				<li><h:outputLink value="marketSummary.faces">Market</h:outputLink></li>
+				<li><h:outputLink value="portfolio.faces">Portfolio</h:outputLink></li>
+				<li><h:outputLink value="quote.faces" styleClass="active">Quotes/Trade</h:outputLink></li>
+				<li><h:commandLink action="#{tradeapp.logout}" id="logoff">Logout</h:commandLink></li>
+			</ul>
+		</nav>
 
-				<div id="nav2">
-					<ul id="list-nav2">
-						<li>
-							<h:outputLink value="tradehome.faces">Home</h:outputLink>
-						</li>
-						<li>
-							<h:outputLink value="account.faces">Account</h:outputLink>
-						</li>
-						<li>
-							<h:outputLink value="marketSummary.faces">Market</h:outputLink>
-						</li>
-						<li>
-							<h:outputLink value="portfolio.faces">Portfolio</h:outputLink>
-						</li>
-						<li>
-							<h:outputLink value="quote.faces">Quotes/Trade</h:outputLink>
-						</li>
-						<li>
-							<h:commandLink action="#{tradeapp.logout}" id="logoff">Logoff</h:commandLink>
-						</li>
-					</ul>
+		<main class="dt-main">
+			<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+				<h:outputText value="#{accountdata.currentTime}" styleClass="text-muted" style="font-size:0.8125rem" />
+			</div>
+
+			<h:panelGroup rendered="#{fn:length(accountdata.closedOrders) > 0}">
+				<div class="dt-alert dt-alert-warning">
+					<strong>Alert:</strong> The following order(s) have completed.
+					<h:dataTable id="orders" value="#{accountdata.closedOrders}" var="item" styleClass="table" headerClass="tableHeader"
+						rowClasses="tableOddRow,tableEvenRow"
+						columnClasses="tableColumn,tableColumn,tableColumn,tableColumn,tableColumn,tableColumn,tableColumn,tableColumn"
+						style="margin-top:0.5rem;">
+
+						<h:column>
+							<f:facet name="header"><h:outputText value="Order ID" /></f:facet>
+							<h:outputText value="#{item.orderID}" />
+						</h:column>
+						<h:column>
+							<f:facet name="header"><h:outputText value="Status" /></f:facet>
+							<h:outputText value="#{item.orderStatus}" />
+						</h:column>
+						<h:column>
+							<f:facet name="header"><h:outputText value="Opened" /></f:facet>
+							<h:outputText value="#{item.openDate}" />
+						</h:column>
+						<h:column>
+							<f:facet name="header"><h:outputText value="Completed" /></f:facet>
+							<h:outputText value="#{item.completionDate}" />
+						</h:column>
+						<h:column>
+							<f:facet name="header"><h:outputText value="Fee" /></f:facet>
+							<h:outputText value="#{item.orderFee}" />
+						</h:column>
+						<h:column>
+							<f:facet name="header"><h:outputText value="Type" /></f:facet>
+							<h:outputText value="#{item.orderType}" />
+						</h:column>
+						<h:column>
+							<f:facet name="header"><h:outputText value="Symbol" /></f:facet>
+							<h:outputText value="#{item.symbol}" />
+						</h:column>
+						<h:column>
+							<f:facet name="header"><h:outputText value="Quantity" /></f:facet>
+							<h:outputText value="#{item.quantity}" />
+						</h:column>
+					</h:dataTable>
+				</div>
+			</h:panelGroup>
+
+			<div class="dt-card">
+				<div class="dt-card-header">
+					<h3>Quotes</h3>
+				</div>
+				<div style="overflow-x:auto;">
+					<h:dataTable id="quotes" value="#{quotedata.quotes}" var="item" binding="#{quotedata.dataTable}" styleClass="table"
+						headerClass="tableHeader" rowClasses="tableOddRow,tableEvenRow"
+						columnClasses="tableColumn,tableColumn,tableColumn,tableColumn,tableColumn,tableColumn,tableColumn,tableColumn">
+						<h:column>
+							<f:facet name="header">
+								<h:outputLink value="docs/glossary.html"><h:outputText value="Symbol" /></h:outputLink>
+							</f:facet>
+							<h:outputText value="#{item.symbol}" />
+						</h:column>
+
+						<h:column>
+							<f:facet name="header">
+								<h:outputLink value="docs/glossary.html"><h:outputText value="Company" /></h:outputLink>
+							</f:facet>
+							<h:outputText value="#{item.companyName}" />
+						</h:column>
+
+						<h:column>
+							<f:facet name="header">
+								<h:outputLink value="docs/glossary.html"><h:outputText value="Volume" /></h:outputLink>
+							</f:facet>
+							<h:outputText value="#{item.volume}" />
+						</h:column>
+
+						<h:column>
+							<f:facet name="header">
+								<h:outputLink value="docs/glossary.html"><h:outputText value="Range" /></h:outputLink>
+							</f:facet>
+							<h:outputText value="#{item.range}" />
+						</h:column>
+
+						<h:column>
+							<f:facet name="header">
+								<h:outputLink value="docs/glossary.html"><h:outputText value="Open Price" /></h:outputLink>
+							</f:facet>
+							<h:outputText value="#{item.open}" />
+						</h:column>
+
+						<h:column>
+							<f:facet name="header">
+								<h:outputLink value="docs/glossary.html"><h:outputText value="Current Price" /></h:outputLink>
+							</f:facet>
+							<h:outputText value="#{item.price}" />
+						</h:column>
+
+						<h:column>
+							<f:facet name="header">
+								<h:outputLink value="docs/glossary.html"><h:outputText value="Gain/(Loss)" /></h:outputLink>
+							</f:facet>
+							<h:outputText escape="false" value="#{item.gainHTML}" />
+							<br />
+							<h:outputText escape="false" value="#{item.gainPercentHTML}" />
+						</h:column>
+
+						<h:column>
+							<f:facet name="header">
+								<h:outputLink value="docs/glossary.html"><h:outputText value="Trade" /></h:outputLink>
+							</f:facet>
+							<h:commandButton class="dt-btn dt-btn-sm" value="buy" action="#{quotedata.buy}" id="buy" />
+							&#160;
+							<h:inputText size="12" id="quantity" value="#{quotedata.quantity}" />
+						</h:column>
+					</h:dataTable>
 				</div>
 			</div>
 
-			<div id="content">
-
-				<div id="contentContainer">
-					<h:outputText value="#{accountdata.currentTime}" style="float:right;color:#cc0000;font-size:10px" />
-
-					<h:panelGroup rendered="#{fn:length(accountdata.closedOrders) > 0}">
-						<table style="width: 100%">
-							<tr>
-								<td colspan="8" bgcolor="#cc0000">
-									<b>
-										<font color="#ffffff">Alert: The following Order(s) have completed.</font>
-									</b>
-								</td>
-							</tr>
-							<tr style="width: 100%;">
-								<td>
-									<h:dataTable id="orders" width="100%" value="#{accountdata.closedOrders}" var="item" styleClass="table" headerClass="tableHeader"
-										rowClasses="tableOddRow,tableEvenRow"
-										columnClasses="tableColumn,tableColumn,tableColumn,tableColumn,tableColumn,tableColumn,tableColumn,tableColumn">
-
-										<h:column>
-											<f:facet name="header">
-												<h:outputLink value="docs/glossary.html">
-													<h:outputText value="order id" />
-												</h:outputLink>
-											</f:facet>
-											<h:outputText value="#{item.orderID}"></h:outputText>
-										</h:column>
-
-										<h:column>
-											<f:facet name="header">
-												<h:outputLink value="docs/glossary.html">
-													<h:outputText value="order status" />
-												</h:outputLink>
-											</f:facet>
-											<h:outputText value="#{item.orderStatus}"></h:outputText>
-										</h:column>
-
-										<h:column>
-											<f:facet name="header">
-												<h:outputLink value="docs/glossary.html">
-													<h:outputText value="creation date" />
-												</h:outputLink>
-											</f:facet>
-											<h:outputText value="#{item.openDate}"></h:outputText>
-										</h:column>
-
-										<h:column>
-											<f:facet name="header">
-												<h:outputLink value="docs/glossary.html">
-													<h:outputText value="completion date" />
-												</h:outputLink>
-											</f:facet>
-											<h:outputText value="#{item.completionDate}"></h:outputText>
-										</h:column>
-
-										<h:column>
-											<f:facet name="header">
-												<h:outputLink value="docs/glossary.html">
-													<h:outputText value="txn fee" />
-												</h:outputLink>
-											</f:facet>
-											<h:outputText value="#{item.orderFee}"></h:outputText>
-										</h:column>
-
-										<h:column>
-											<f:facet name="header">
-												<h:outputLink value="docs/glossary.html">
-													<h:outputText value="type" />
-												</h:outputLink>
-											</f:facet>
-											<h:outputText value="#{item.orderType}"></h:outputText>
-										</h:column>
-
-										<h:column>
-											<f:facet name="header">
-												<h:outputLink value="docs/glossary.html">
-													<h:outputText value="symbol" />
-												</h:outputLink>
-											</f:facet>
-											<h:outputText value="#{item.symbol}"></h:outputText>
-										</h:column>
-
-										<h:column>
-											<f:facet name="header">
-												<h:outputLink value="docs/glossary.html">
-													<h:outputText value="quantity" />
-												</h:outputLink>
-											</f:facet>
-											<h:outputText value="#{item.quantity}"></h:outputText>
-										</h:column>
-									</h:dataTable>
-								</td>
-							</tr>
-						</table>
-					</h:panelGroup>
-
-
-					<table width="100%">
-						<tbody>
-							<tr>
-								<td>
-									<table width="100%">
-										<tbody>
-											<tr>
-												<td bgcolor="#cccccc">
-													<b>Quotes</b>
-												</td>
-											</tr>
-											<tr>
-												<td align="center">
-													<h:dataTable id="quotes" width="100%" value="#{quotedata.quotes}" var="item" binding="#{quotedata.dataTable}" styleClass="table"
-														headerClass="tableHeader" rowClasses="tableOddRow,tableEvenRow"
-														columnClasses="tableColumn,tableColumn,tableColumn,tableColumn,tableColumn,tableColumn,tableColumn,tableColumn">
-														<h:column>
-															<f:facet name="header">
-																<h:outputLink value="docs/glossary.html">
-																	<h:outputText value="symbol" />
-																</h:outputLink>
-															</f:facet>
-															<h:outputText value="#{item.symbol}"></h:outputText>
-														</h:column>
-
-														<h:column>
-															<f:facet name="header">
-																<h:outputLink value="docs/glossary.html">
-																	<h:outputText value="company" />
-																</h:outputLink>
-															</f:facet>
-															<h:outputText value="#{item.companyName}"></h:outputText>
-														</h:column>
-
-														<h:column>
-															<f:facet name="header">
-																<h:outputLink value="docs/glossary.html">
-																	<h:outputText value="volume" />
-																</h:outputLink>
-															</f:facet>
-															<h:outputText value="#{item.volume}"></h:outputText>
-														</h:column>
-
-														<h:column>
-															<f:facet name="header">
-																<h:outputLink value="docs/glossary.html">
-																	<h:outputText value="range" />
-																</h:outputLink>
-															</f:facet>
-															<h:outputText value="#{item.range}"></h:outputText>
-														</h:column>
-
-														<h:column>
-															<f:facet name="header">
-																<h:outputLink value="docs/glossary.html">
-																	<h:outputText value="open price" />
-																</h:outputLink>
-															</f:facet>
-															<h:outputText value="#{item.open}"></h:outputText>
-														</h:column>
-
-														<h:column>
-															<f:facet name="header">
-																<h:outputLink value="docs/glossary.html">
-																	<h:outputText value="current price" />
-																</h:outputLink>
-															</f:facet>
-															<h:outputText value="#{item.price}"></h:outputText>
-														</h:column>
-
-														<h:column>
-															<f:facet name="header">
-																<h:outputLink value="docs/glossary.html">
-																	<h:outputText value="gain/(loss)" />
-																</h:outputLink>
-															</f:facet>
-															<h:outputText escape="false" value="#{item.gainHTML}"></h:outputText>
-															<br />
-															<h:outputText escape="false" value="#{item.gainPercentHTML}" />
-														</h:column>
-
-														<h:column>
-															<f:facet name="header">
-																<h:outputLink value="docs/glossary.html">
-																	<h:outputText value="trade" />
-																</h:outputLink>
-															</f:facet>
-															<h:commandButton class="submit" value="buy" action="#{quotedata.buy}" id="buy"></h:commandButton>
-															<h:outputText value="&#160;" />
-															<h:inputText size="12" class="rounded" id="quantity" value="#{quotedata.quantity}"></h:inputText>
-
-														</h:column>
-													</h:dataTable>
-												</td>
-											</tr>
-										</tbody>
-									</table>
-								</td>
-							</tr>
-						</tbody>
-					</table>
-					<table style="width: 100%;">
-						<tbody>
-							<tr>
-								<td colspan="2">
-									<hr />
-								</td>
-							</tr>
-							<tr>
-								<td colspan="2">
-									<table width="100%" style="font-size: 11px">
-										<tbody>
-											<tr>
-												<td></td>
-												<td style="vertical-align: bottom; text-align: center">
-													<h:commandButton class="submit" id="submit2" type="submit" value="quotes" action="#{quotedata.getQuotesBySymbols}" />
-													<h:inputText id="symbols" class="rounded" value="#{quotedata.symbols}" required="true">
-														<f:validateLength minimum="1" maximum="40" />
-													</h:inputText>
-												</td>
-											</tr>
-										</tbody>
-									</table>
-								</td>
-							</tr>
-						</tbody>
-					</table>
+			<div class="dt-card">
+				<div style="display:flex;justify-content:space-between;align-items:center;">
+					<span class="text-muted">Click any <a href="docs/glossary.html">symbol</a> for a quote or to trade.</span>
+					<div style="display:flex;gap:0.5rem;align-items:center;">
+						<h:inputText id="symbols" value="#{quotedata.symbols}" required="true">
+							<f:validateLength minimum="1" maximum="40" />
+						</h:inputText>
+						<h:commandButton class="dt-btn dt-btn-sm" id="submit2" type="submit" value="quotes" action="#{quotedata.getQuotesBySymbols}" />
+					</div>
 				</div>
 			</div>
-		</h:form>
-	</div>
-	<div id="footer"></div>
+		</main>
+
+		<footer class="dt-footer">
+			Apache DayTrader Performance Benchmark Sample
+		</footer>
+	</h:form>
 
 </h:body>
 </html>

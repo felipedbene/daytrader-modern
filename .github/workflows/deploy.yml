@@ -17,9 +17,11 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install homelab CA + tools
+        env:
+          HOMELAB_CA_CERT: ${{ secrets.HOMELAB_CA_CERT }}
         run: |
-          # Install homelab CA cert
-          cp .github/homelab-ca.crt /usr/local/share/ca-certificates/homelab-ca.crt
+          # Install homelab CA cert from secret
+          echo "$HOMELAB_CA_CERT" > /usr/local/share/ca-certificates/homelab-ca.crt
           update-ca-certificates
 
           # Install Maven if not present
