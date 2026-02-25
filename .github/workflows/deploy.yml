@@ -23,6 +23,14 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
+      - name: Install Maven
+        run: |
+          if ! command -v mvn &>/dev/null; then
+            curl -sL https://archive.apache.org/dist/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz | tar xz -C /opt
+            ln -sf /opt/apache-maven-3.9.6/bin/mvn /usr/local/bin/mvn
+          fi
+          mvn --version
+
       - name: Build with Maven
         run: mvn clean package -pl daytrader-ee7-web -am -DskipTests
 
