@@ -34,7 +34,6 @@ jobs:
             chmod +x /usr/local/bin/mc
           fi
 
-          mvn --version
           mc --version
 
       - name: Set up JDK 11
