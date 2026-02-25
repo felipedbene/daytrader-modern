@@ -8,7 +8,7 @@ on:
 env:
   LIBERTY_HOME: /opt/IBM/WebSphere/Liberty
   MINIO_BUCKET: daytrader-artifacts
-  MINIO_ENDPOINT: http://10.0.2.81:9000
+  MINIO_ENDPOINT: https://minio-api.k8s.debene.name
 
 jobs:
   build:
@@ -16,20 +16,33 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install homelab CA + tools
+        run: |
+          # Install homelab CA cert
+          cp .github/homelab-ca.crt /usr/local/share/ca-certificates/homelab-ca.crt
+          update-ca-certificates
+
+          # Install Maven if not present
+          if ! command -v mvn &>/dev/null; then
+            curl -sL https://archive.apache.org/dist/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz | tar xz -C /opt
+            ln -sf /opt/apache-maven-3.9.6/bin/mvn /usr/local/bin/mvn
+          fi
+
+          # Install MinIO client if not present
+          if ! command -v mc &>/dev/null; then
+            curl -sL https://dl.min.io/client/mc/release/linux-amd64/mc -o /usr/local/bin/mc
+            chmod +x /usr/local/bin/mc
+          fi
+
+          mvn --version
+          mc --version
+
       - name: Set up JDK 11
         uses: actions/setup-java@v4
         with:
           java-version: '11'
           distribution: 'temurin'
           cache: maven
-
-      - name: Install Maven
-        run: |
-          if ! command -v mvn &>/dev/null; then
-            curl -sL https://archive.apache.org/dist/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz | tar xz -C /opt
-            ln -sf /opt/apache-maven-3.9.6/bin/mvn /usr/local/bin/mvn
-          fi
-          mvn --version
 
       - name: Build with Maven
         run: mvn clean package -pl daytrader-ee7-web -am -DskipTests
@@ -39,19 +52,9 @@ jobs:
           MINIO_ACCESS_KEY: ${{ secrets.MINIO_ACCESS_KEY }}
           MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
         run: |
-          # Install mc (MinIO client) if not present
-          if ! command -v mc &>/dev/null; then
-            curl -sL https://dl.min.io/client/mc/release/linux-amd64/mc -o /usr/local/bin/mc
-            chmod +x /usr/local/bin/mc
-          fi
-
-          # Configure MinIO alias
           mc alias set homelab "$MINIO_ENDPOINT" "$MINIO_ACCESS_KEY" "$MINIO_SECRET_KEY"
-
-          # Create bucket if needed
           mc mb --ignore-existing homelab/$MINIO_BUCKET
 
-          # Upload WAR with timestamp and latest
           TIMESTAMP=$(date +%Y%m%d-%H%M%S)
           WAR_FILE=$(ls daytrader-ee7-web/target/*.war | head -1)
 
