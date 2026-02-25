@@ -8,7 +8,7 @@ on:
 env:
   LIBERTY_HOME: /opt/IBM/WebSphere/Liberty
   MINIO_BUCKET: daytrader-artifacts
-  MINIO_ENDPOINT: http://minio-api.k8s.debene.name
+  MINIO_ENDPOINT: http://10.0.2.81:9000
 
 jobs:
   build:
