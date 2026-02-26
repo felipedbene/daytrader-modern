@@ -157,6 +157,8 @@
     </message-destination-ref>
     -->
 
+    -->
+
     <!-- Only protect REST API with OIDC auth -->
     <security-constraint>
         <display-name>REST API Protection</display-name>
@@ -176,67 +178,4 @@
     <login-config>
         <auth-method>OIDC</auth-method>
     </login-config>
-</web-app>
-    <security-role>
-        <description>
-            All Authenticated Users
-        </description>
-        <role-name>AllAuthenticated</role-name>
-    </security-role>
-    <security-role>
-        <description>
-            Group 1
-        </description>
-        <role-name>grp1</role-name>
-    </security-role>
-    <security-role>
-        <description>
-            Group 2
-        </description>
-        <role-name>grp2</role-name>
-    </security-role>
-    <security-role>
-        <description>
-            Group 3
-        </description>
-        <role-name>grp3</role-name>
-    </security-role>
-    <security-role>
-        <description>
-            Group 4
-        </description>
-        <role-name>grp4</role-name>
-    </security-role>
-    <security-role>
-        <description>
-            Group 5
-        </description>
-        <role-name>grp5</role-name>
-    </security-role>
-    <security-role>
-        <description>
-            WebSecOnly
-        </description>
-        <role-name>webSecOnly</role-name>
-    </security-role>
-
-    <login-config>
-        <auth-method>OIDC</auth-method>
-    </login-config>
-
-    <!-- Protect REST API endpoints with OIDC -->
-    <security-constraint>
-        <display-name>REST API Protection</display-name>
-        <web-resource-collection>
-            <web-resource-name>REST API</web-resource-name>
-            <url-pattern>/api/*</url-pattern>
-        </web-resource-collection>
-        <auth-constraint>
-            <role-name>AllAuthenticated</role-name>
-        </auth-constraint>
-    </security-constraint>
-
-    <security-role>
-        <role-name>AllAuthenticated</role-name>
-    </security-role>
 </web-app>
