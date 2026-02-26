@@ -84,7 +84,7 @@ jobs:
           mkdir -p ~/.ssh
           echo "$AIX_DEPLOY_KEY" > ~/.ssh/aix_deploy
           chmod 600 ~/.ssh/aix_deploy
-          SSH="ssh -o StrictHostKeyChecking=no -i ~/.ssh/aix_deploy deploy@$AIX_HOST"
+          SSH="ssh -o StrictHostKeyChecking=no -i ~/.ssh/aix_deploy root@$AIX_HOST"
 
           # Download latest EAR from MinIO (use HTTP — AIX curl lacks homelab CA)
           $SSH "curl -s http://10.0.2.81:9000/daytrader-artifacts/daytrader-latest.ear \
