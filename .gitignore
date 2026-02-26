@@ -11,3 +11,5 @@
 *.key
 *.pem
 !ca/homelab-ca.crt
+# Claude Code auto-generated session settings (may contain tokens)
+.claude/settings.json
