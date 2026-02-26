@@ -24,6 +24,9 @@
         <feature>appSecurity-3.0</feature>
     </featureManager>
 
+    <!-- Default SSL/TLS config (required for OIDC client) -->
+    <keyStore id="defaultKeyStore" password="liberty-ks-2026"/>
+
     <!-- OIDC Configuration - Authentik -->
     <openidConnectClient id="authentikOIDC"
         clientId="${env.OIDC_CLIENT_ID:daytrader}"
