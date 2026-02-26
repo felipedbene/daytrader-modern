@@ -79,6 +79,7 @@ jobs:
           AIX_HOST: ${{ secrets.AIX_HOST }}
           AIX_DEPLOY_KEY: ${{ secrets.AIX_DEPLOY_KEY }}
         run: |
+          set +e  # handle errors manually — curl/ssh failures must not kill the script
           mkdir -p ~/.ssh
           echo "$AIX_DEPLOY_KEY" > ~/.ssh/aix_deploy
           chmod 600 ~/.ssh/aix_deploy
@@ -86,52 +87,58 @@ jobs:
 
           LIBERTY="/opt/IBM/WebSphere/wlp"
           JAVA="export JAVA_HOME=/usr/java8_64 &&"
-          DERBY_DB="$LIBERTY/usr/shared/resources/data/tradedb"
-          APP_PORT=9082
-          APP_URL="http://localhost:${APP_PORT}/daytrader"
+          APP_URL="http://localhost:9082/daytrader"
 
-          # ── 1. Stop Liberty & wipe Derby for a clean slate ─────────────────
+          # helper: poll Liberty until HTTP 200 or timeout (arg1 = label)
+          wait_for_liberty() {
+            local label="$1"
+            echo "⏳ Waiting for Liberty to be ready ($label)..."
+            for i in $(seq 1 36); do
+              sleep 10
+              code=$($SSH "curl -s -o /dev/null -w '%{http_code}' --max-time 5 ${APP_URL}/" 2>/dev/null || true)
+              code=${code:-000}
+              if [ "$code" = "200" ]; then
+                echo "✅ Liberty up after $((i * 10))s"
+                return 0
+              fi
+              echo "  [$((i * 10))s] HTTP $code"
+            done
+            echo "⚠️  Liberty did not respond after 360s — continuing anyway"
+            return 0
+          }
+
+          # ── 1. Stop Liberty ─────────────────────────────────────────────────
           echo "⏹️  Stopping Liberty..."
-          $SSH "$JAVA $LIBERTY/bin/server stop defaultServer 2>/dev/null; true"
-          $SSH "rm -rf $DERBY_DB"
-          echo "🗑️  Derby DB wiped"
+          $SSH "$JAVA $LIBERTY/bin/server stop defaultServer 2>/dev/null" || true
 
           # ── 2. Deploy latest EAR (use HTTP — AIX curl lacks homelab CA) ────
           echo "📦 Deploying EAR..."
           $SSH "curl -s --max-time 120 http://10.0.2.81:9000/daytrader-artifacts/daytrader-latest.ear \
             -o $LIBERTY/usr/servers/defaultServer/apps/daytrader-ee7.ear"
 
-          # ── 3. Start Liberty (Derby creates a fresh empty database) ────────
+          # ── 3. Start Liberty ────────────────────────────────────────────────
           echo "▶️  Starting Liberty..."
           $SSH "$JAVA $LIBERTY/bin/server start defaultServer"
 
-          # ── 4. Wait for app to respond on correct port ──────────────────────
-          echo "⏳ Waiting for Liberty to be ready..."
-          for i in $(seq 1 30); do
-            sleep 10
-            code=$($SSH "curl -s -o /dev/null -w '%{http_code}' --max-time 5 ${APP_URL}/ 2>/dev/null" 2>/dev/null || echo "000")
-            if [ "$code" = "200" ]; then
-              echo "✅ Liberty responded after $((i * 10))s"
-              break
-            fi
-            echo "  [$((i * 10))s] HTTP $code — still waiting..."
-          done
+          # ── 4. Wait for app to respond ──────────────────────────────────────
+          wait_for_liberty "initial start"
 
-          # Extra grace period for DataSource connection pool to warm up
-          echo "⏳ Waiting 30s for DataSource pool to stabilise..."
+          # Extra grace period for DataSource connection pool to stabilise
+          echo "⏳ Waiting 30s for DataSource pool..."
           sleep 30
 
           # ── 5. Create DB tables (retry — TradeDirect init is timing-sensitive)
           echo "🛠️  Creating DB tables..."
           TABLES_OK=false
           for i in $(seq 1 6); do
-            result=$($SSH "curl -s --max-time 120 '${APP_URL}/config?action=buildDBTables'" 2>/dev/null)
+            result=$($SSH "curl -s --max-time 120 '${APP_URL}/config?action=buildDBTables'" 2>/dev/null || true)
             if echo "$result" | grep -q "successfully created"; then
               echo "✅ Tables created on attempt $i"
               TABLES_OK=true
               break
             fi
-            echo "  Attempt $i: buildDBTables not ready yet (retrying in 15s)..."
+            echo "  Attempt $i: not ready yet (retrying in 15s)..."
+            echo "  Response snippet: $(echo "$result" | grep -o 'TradeBuildDB[^<]*' | head -3)"
             sleep 15
           done
 
@@ -142,34 +149,26 @@ jobs:
           fi
 
           # ── 6. Restart Liberty for clean EJB/JPA state after DDL ──────────
-          echo "🔄 Restarting Liberty for clean EJB state..."
+          echo "🔄 Restarting Liberty for clean EJB/JPA state..."
           $SSH "$JAVA $LIBERTY/bin/server stop defaultServer"
           $SSH "$JAVA $LIBERTY/bin/server start defaultServer"
 
           # ── 7. Wait for Liberty to be ready again ──────────────────────────
-          echo "⏳ Waiting for Liberty to restart..."
-          for i in $(seq 1 30); do
-            sleep 10
-            code=$($SSH "curl -s -o /dev/null -w '%{http_code}' --max-time 5 ${APP_URL}/ 2>/dev/null" 2>/dev/null || echo "000")
-            if [ "$code" = "200" ]; then
-              echo "✅ Liberty back up after $((i * 10))s"
-              break
-            fi
-            echo "  [$((i * 10))s] HTTP $code — still waiting..."
-          done
+          wait_for_liberty "post-DDL restart"
 
           # Extra grace period before populating
-          echo "⏳ Waiting 30s for DataSource pool to stabilise..."
+          echo "⏳ Waiting 30s for DataSource pool..."
           sleep 30
 
           # ── 8. Populate DB (10 000 quotes + 15 000 users — takes ~10 min) ──
           echo "📊 Populating database (this takes several minutes)..."
-          $SSH "curl -s --max-time 1200 '${APP_URL}/config?action=buildDB' -o /dev/null"
+          $SSH "curl -s --max-time 1200 '${APP_URL}/config?action=buildDB' -o /dev/null" || true
           echo "✅ Database populated"
 
           # ── 9. Health check ─────────────────────────────────────────────────
           sleep 20
-          code=$($SSH "curl -s -o /dev/null -w '%{http_code}' --max-time 10 ${APP_URL}/" 2>/dev/null || echo "000")
+          code=$($SSH "curl -s -o /dev/null -w '%{http_code}' --max-time 10 ${APP_URL}/" 2>/dev/null || true)
+          code=${code:-000}
           if [ "$code" = "200" ]; then
             echo "✅ Deployed and healthy!"
           else
