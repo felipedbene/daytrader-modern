@@ -1,26 +1,30 @@
 FROM eclipse-temurin:17-jdk-focal
 
-# Install Open Liberty
+# Install Open Liberty (JavaEE8 package - smaller, faster)
 ENV LIBERTY_VERSION=24.0.0.12
 ENV LIBERTY_HOME=/opt/ibm/wlp
 
-RUN apt-get update && apt-get install -y unzip curl && rm -rf /var/lib/apt/lists/* \
-    && curl -sL -o /tmp/openliberty.zip "https://public.dhe.ibm.com/ibmdl/export/pub/software/openliberty/runtime/release/24.0.0.12/openliberty-24.0.0.12.zip" \
+RUN apt-get update && apt-get install -y unzip curl ca-certificates && rm -rf /var/lib/apt/lists/* \
+    && curl -sL -o /tmp/openliberty.zip "https://public.dhe.ibm.com/ibmdl/export/pub/software/openliberty/runtime/release/24.0.0.12/openliberty-javaee8-24.0.0.12.zip" \
     && mkdir -p /opt/ibm \
     && unzip -q /tmp/openliberty.zip -d /opt/ibm \
     && rm /tmp/openliberty.zip \
     && useradd -r -u 1001 -g 0 default
 
-# PostgreSQL JDBC driver
-COPY lib/postgresql-42.7.1.jar ${LIBERTY_HOME}/usr/shared/resources/postgresql/postgresql-42.7.1.jar
+# Install OIDC and security features via featureUtility
+RUN ${LIBERTY_HOME}/bin/featureUtility installFeature openidConnectClient-1.0 transportSecurity-1.0 appSecurity-3.0 --acceptLicense
 
 # Homelab CA cert (for OIDC to Authentik)
 COPY ca/homelab-ca.crt /usr/local/share/ca-certificates/homelab-ca.crt
 RUN update-ca-certificates
 
 # Import CA into Java truststore
+ENV JAVA_HOME=/opt/java/openjdk
 RUN keytool -import -trustcacerts -keystore ${JAVA_HOME}/lib/security/cacerts \
     -storepass changeit -noprompt -alias homelab-ca -file /usr/local/share/ca-certificates/homelab-ca.crt
+
+# PostgreSQL JDBC driver
+COPY lib/postgresql-42.7.1.jar ${LIBERTY_HOME}/usr/shared/resources/postgresql/postgresql-42.7.1.jar
 
 # Server config
 COPY daytrader-ee7/src/main/liberty/config/server.xml ${LIBERTY_HOME}/usr/servers/defaultServer/server.xml
@@ -36,7 +40,6 @@ RUN mkdir -p ${LIBERTY_HOME}/usr/servers/defaultServer/logs \
 USER 1001
 EXPOSE 9080 9443
 
-ENV JAVA_HOME=/opt/java/openjdk
 ENV PATH=${LIBERTY_HOME}/bin:${JAVA_HOME}/bin:${PATH}
 
 CMD ["server", "run", "defaultServer"]
