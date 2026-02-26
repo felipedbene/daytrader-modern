@@ -107,11 +107,20 @@ jobs:
           # Tables are auto-created by JPA/EclipseLink at startup.
           # buildDBTables uses raw DDL but has no PostgreSQL script — skip it.
           echo "🗄️ Seeding database (buildDB via EJB/JPA)..."
-          $SSH "curl -sf --max-time 600 'http://127.0.0.1:9080/daytrader/config?action=buildDB'" \
-            && echo "  ✅ Test data seeded" || echo "  ⚠️ buildDB returned non-zero"
+          BUILD_OUT=$($SSH "curl -f --max-time 600 'http://127.0.0.1:9080/daytrader/config?action=buildDB'" 2>&1 || true)
+          # Show key lines from buildDB HTML output
+          echo "$BUILD_OUT" | grep -iE 'error|exception|unable|abort|created|built|s:0|Account#' | head -20
+          if echo "$BUILD_OUT" | grep -qi 'error\|exception\|unable\|abort'; then
+            echo "  ⚠️ buildDB had errors (see above)"
+          else
+            echo "  ✅ buildDB completed"
+          fi
+
+          echo "🔍 Checking Liberty logs for JDBC errors..."
+          $SSH "cd $DEPLOY_DIR && docker compose logs --tail=50 2>/dev/null" | grep -iE 'error|exception|TradeDirect|DSRA|CWWJP' | tail -10 || echo "  (no errors found)"
 
           echo "🔍 Verifying quotes exist after seeding..."
-          QUOTE_CHECK=$($SSH "curl -sf --max-time 15 'http://127.0.0.1:9080/daytrader/api/quotes'" 2>/dev/null | head -c 200 || true)
+          QUOTE_CHECK=$($SSH "curl -sf --max-time 15 'http://127.0.0.1:9080/daytrader/api/quotes'" 2>/dev/null | head -c 300 || true)
           if echo "$QUOTE_CHECK" | grep -q 'symbol'; then
             echo "  ✅ Quotes verified in DB"
           else
@@ -147,14 +156,20 @@ jobs:
             echo "  [$((i * 10))s] HTTP $code"
           done
 
+          echo "🔍 Checking Liberty logs after restart..."
+          $SSH "cd $DEPLOY_DIR && docker compose logs --tail=30 2>/dev/null" | grep -iE 'error|exception|DSRA|CWWJP|eclipselink|ddl' | tail -10 || echo "  (no errors found)"
+
           echo "🔍 Verifying quotes persist after restart..."
-          QUOTE_CHECK=$($SSH "curl -sf --max-time 15 'http://127.0.0.1:9080/daytrader/api/quotes'" 2>/dev/null | head -c 200 || true)
+          QUOTE_CHECK=$($SSH "curl -sf --max-time 15 'http://127.0.0.1:9080/daytrader/api/quotes'" 2>/dev/null | head -c 300 || true)
           if echo "$QUOTE_CHECK" | grep -q 'symbol'; then
             echo "  ✅ Quotes still present after restart"
           else
-            echo "  ❌ Quotes LOST after restart — EclipseLink may be dropping tables"
+            echo "  ❌ Quotes LOST after restart"
             echo "  Response: $QUOTE_CHECK"
           fi
+
+          echo "🔍 Checking market summary API..."
+          $SSH "curl -sf --max-time 15 'http://127.0.0.1:9080/daytrader/api/market'" 2>/dev/null | head -c 300 || echo "  (market API failed)"
 
           rm -f ~/.ssh/p8_deploy
 
