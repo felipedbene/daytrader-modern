@@ -39,7 +39,7 @@
     <!-- OIDC Configuration - Authentik -->
     <openidConnectClient id="authentikOIDC"
         clientId="${env.OIDC_CLIENT_ID:daytrader}"
-        clientSecret="${env.OIDC_CLIENT_SECRET:daytrader-oidc-secret-2026}"
+        clientSecret="${env.OIDC_CLIENT_SECRET}"
         discoveryEndpointUrl="${env.OIDC_DISCOVERY_URL:https://auth.k8s.debene.name/application/o/daytrader/.well-known/openid-configuration}"
         signatureAlgorithm="RS256"
         scope="openid profile email"
@@ -94,8 +94,8 @@
 	<dataSource connectionManagerRef="conMgr1" id="PostgresDataSource" isolationLevel="TRANSACTION_READ_COMMITTED" jndiName="jdbc/TradeDataSource" statementCacheSize="60">
 		<jdbcDriver libraryRef="postgresLib"/>
 		<properties URL="jdbc:postgresql://${env.DB_HOST:10.0.100.104}:${env.DB_PORT:5432}/${env.DB_NAME:tradedb}"
-			user="${env.DB_USER:daytrader}" 
-			password="${env.DB_PASSWORD:daytrader-p8-2026}"/>
+			user="${env.DB_USER:daytrader}"
+			password="${env.DB_PASSWORD}"/>
 	</dataSource>
 	<!-- ========================================================================== -->
 

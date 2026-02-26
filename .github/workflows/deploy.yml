@@ -62,6 +62,7 @@ jobs:
         env:
           DEPLOY_KEY: ${{ secrets.AIX_DEPLOY_KEY }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          OIDC_CLIENT_SECRET: ${{ secrets.OIDC_CLIENT_SECRET }}
         run: |
           set +e
           mkdir -p ~/.ssh
@@ -80,7 +81,7 @@ jobs:
           $SSH "cd $DEPLOY_DIR && docker compose build --no-cache 2>&1 | tail -5"
 
           echo "🔄 Restarting container..."
-          $SSH "cd $DEPLOY_DIR && docker compose down && DB_PASSWORD='${DB_PASSWORD}' docker compose up -d 2>&1"
+          $SSH "cd $DEPLOY_DIR && docker compose down && DB_PASSWORD='${DB_PASSWORD}' OIDC_CLIENT_SECRET='${OIDC_CLIENT_SECRET}' docker compose up -d 2>&1"
 
           echo "⏳ Waiting for Liberty to start..."
           for i in $(seq 1 24); do
