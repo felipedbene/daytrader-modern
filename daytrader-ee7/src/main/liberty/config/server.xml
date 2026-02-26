@@ -1,6 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <server description="Sample Server">
 
+    <!-- Variable defaults (env vars override these at runtime) -->
+    <variable name="DB_HOST" defaultValue="10.0.100.104"/>
+    <variable name="DB_PORT" defaultValue="5432"/>
+    <variable name="DB_NAME" defaultValue="tradedb"/>
+    <variable name="DB_USER" defaultValue="daytrader"/>
+    <variable name="DB_PASSWORD" defaultValue=""/>
+    <variable name="OIDC_CLIENT_ID" defaultValue="daytrader"/>
+    <variable name="OIDC_CLIENT_SECRET" defaultValue=""/>
+    <variable name="OIDC_DISCOVERY_URL" defaultValue="https://auth.k8s.debene.name/application/o/daytrader/.well-known/openid-configuration"/>
+    <variable name="OIDC_REDIRECT_HOST" defaultValue="https://aix.debene.dev"/>
+
     <featureManager>
         <feature>ejb-3.2</feature>
         <feature>servlet-4.0</feature>
@@ -40,12 +51,12 @@
 
     <!-- OIDC Configuration - Authentik -->
     <openidConnectClient id="authentikOIDC"
-        clientId="${env.OIDC_CLIENT_ID:daytrader}"
-        clientSecret="${env.OIDC_CLIENT_SECRET}"
-        discoveryEndpointUrl="${env.OIDC_DISCOVERY_URL:https://auth.k8s.debene.name/application/o/daytrader/.well-known/openid-configuration}"
+        clientId="${OIDC_CLIENT_ID}"
+        clientSecret="${OIDC_CLIENT_SECRET}"
+        discoveryEndpointUrl="${OIDC_DISCOVERY_URL}"
         signatureAlgorithm="RS256"
         scope="openid profile email"
-        redirectToRPHostAndPort="${env.OIDC_REDIRECT_HOST:https://aix.debene.dev}"
+        redirectToRPHostAndPort="${OIDC_REDIRECT_HOST}"
         mapIdentityToRegistryUser="true"
         userIdentityToCreateSubject="preferred_username"
         httpsRequired="false"
@@ -96,11 +107,11 @@
 	<dataSource connectionManagerRef="conMgr1" id="PostgresDataSource" isolationLevel="TRANSACTION_READ_COMMITTED" jndiName="jdbc/TradeDataSource" statementCacheSize="60">
 		<jdbcDriver libraryRef="postgresLib"/>
 		<properties.postgresql
-			serverName="${env.DB_HOST:10.0.100.104}"
-			portNumber="${env.DB_PORT:5432}"
-			databaseName="${env.DB_NAME:tradedb}"
-			user="${env.DB_USER:daytrader}"
-			password="${env.DB_PASSWORD}"/>
+			serverName="${DB_HOST}"
+			portNumber="${DB_PORT}"
+			databaseName="${DB_NAME}"
+			user="${DB_USER}"
+			password="${DB_PASSWORD}"/>
 	</dataSource>
 	<!-- ========================================================================== -->
 
