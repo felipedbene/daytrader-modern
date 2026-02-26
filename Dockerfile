@@ -42,5 +42,10 @@ EXPOSE 9080 9443
 
 ENV PATH=${LIBERTY_HOME}/bin:${JAVA_HOME}/bin:${PATH}
 
+# ENTRYPOINT ["/bin/sh", "-c", "mkdir -p /opt/ibm/wlp/usr/servers/defaultServer/logs && chown -R 1001:0 /opt/ibm/wlp && chmod -R g=u /opt/ibm/wlp && tail -f /dev/null"]
+CMD []
 # CMD ["server", "run", "defaultServer"]
-CMD ["tail", "-f", "/dev/null"]
+# ENTRYPOINT ["/bin/sh", "-c", "mkdir -p /opt/ibm/wlp/usr/servers/defaultServer/logs && chown -R 1001:0 /opt/ibm/wlp && chmod -R g=u /opt/ibm/wlp && tail -f /dev/null"]
+ENTRYPOINT ["/bin/sh", "-c", "mkdir -p /opt/ibm/wlp/usr/servers/defaultServer/logs && chown -R 1001:0 /opt/ibm/wlp && chmod -R g=u /opt/ibm/wlp && server run defaultServer"]
+# CMD []
+CMD []
