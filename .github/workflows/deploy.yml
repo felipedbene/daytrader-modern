@@ -61,6 +61,7 @@ jobs:
       - name: Deploy to P8 Gentoo (Docker)
         env:
           DEPLOY_KEY: ${{ secrets.AIX_DEPLOY_KEY }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         run: |
           set +e
           mkdir -p ~/.ssh
@@ -72,14 +73,14 @@ jobs:
           echo "📦 Syncing source to P8..."
           # Sync EAR and Dockerfile
           $SCP daytrader-ee7/target/daytrader-ee7.ear felipe@$P8_HOST:$DEPLOY_DIR/daytrader-ee7/target/daytrader-ee7.ear
-          $SCP Dockerfile felipe@$P8_HOST:$DEPLOY_DIR/Dockerfile
+          $SCP Dockerfile docker-compose.yml felipe@$P8_HOST:$DEPLOY_DIR/
           $SCP daytrader-ee7/src/main/liberty/config/server.xml felipe@$P8_HOST:$DEPLOY_DIR/daytrader-ee7/src/main/liberty/config/server.xml
 
           echo "🐳 Rebuilding Docker image on P8..."
           $SSH "cd $DEPLOY_DIR && docker compose build --no-cache 2>&1 | tail -5"
 
           echo "🔄 Restarting container..."
-          $SSH "cd $DEPLOY_DIR && docker compose down && docker compose up -d 2>&1"
+          $SSH "cd $DEPLOY_DIR && docker compose down && DB_PASSWORD='${DB_PASSWORD}' docker compose up -d 2>&1"
 
           echo "⏳ Waiting for Liberty to start..."
           for i in $(seq 1 24); do

@@ -8,9 +8,9 @@ services:
       - "9080:9080"
       - "9443:9443"
     environment:
-      - DB_HOST=10.0.100.104
-      - DB_PORT=5432
-      - DB_NAME=tradedb
-      - DB_USER=daytrader
-      - DB_PASSWORD=daytrader-p8-2026
+      - DB_HOST=${DB_HOST:-10.0.100.104}
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_NAME=${DB_NAME:-tradedb}
+      - DB_USER=${DB_USER:-daytrader}
+      - DB_PASSWORD=${DB_PASSWORD}
     restart: unless-stopped
