@@ -110,6 +110,28 @@ jobs:
           echo "✅ Docker image pushed: $IMAGE_TAG"
           echo "✅ Docker image pushed: $IMAGE_TAG_SHA"
 
+  notify:
+    needs: [build, deploy]
+    runs-on: [self-hosted, homelab]
+    if: always()
+    steps:
+      - name: Discord notification
+        run: |
+          if [ "${{ needs.deploy.result }}" = "success" ]; then
+            COLOR=3066993; TITLE="✅ DayTrader Deploy Success"
+          elif [ "${{ needs.build.result }}" = "failure" ]; then
+            COLOR=15158332; TITLE="❌ DayTrader Build Failed"
+          elif [ "${{ needs.deploy.result }}" = "failure" ]; then
+            COLOR=15158332; TITLE="❌ DayTrader Deploy Failed"
+          elif [ "${{ needs.deploy.result }}" = "skipped" ]; then
+            COLOR=16776960; TITLE="⏭️ DayTrader Deploy Skipped"
+          else
+            COLOR=8421504; TITLE="⚠️ DayTrader Pipeline: ${{ needs.deploy.result }}"
+          fi
+          curl -s -H "Content-Type: application/json" \
+            -d "{\"embeds\":[{\"title\":\"$TITLE\",\"description\":\"Commit: \`${GITHUB_SHA::7}\`\nBranch: \`$GITHUB_REF_NAME\`\nBy: $GITHUB_ACTOR\",\"color\":$COLOR,\"url\":\"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID\"}]}" \
+            "${{ secrets.DISCORD_WEBHOOK_URL }}"
+
   deploy:
     needs: build
     runs-on: [self-hosted, homelab]
@@ -252,17 +274,3 @@ jobs:
           fi
 
           rm -f ~/.ssh/aix_deploy
-
-      - name: Notify Discord (success)
-        if: success()
-        run: |
-          curl -s -H "Content-Type: application/json" \
-            -d "{\"embeds\":[{\"title\":\"✅ DayTrader Deploy Success\",\"description\":\"Commit: \`${GITHUB_SHA::7}\`\nBranch: \`$GITHUB_REF_NAME\`\nBy: $GITHUB_ACTOR\",\"color\":3066993,\"url\":\"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID\"}]}" \
-            "${{ secrets.DISCORD_WEBHOOK_URL }}"
-
-      - name: Notify Discord (failure)
-        if: failure()
-        run: |
-          curl -s -H "Content-Type: application/json" \
-            -d "{\"embeds\":[{\"title\":\"❌ DayTrader Deploy Failed\",\"description\":\"Commit: \`${GITHUB_SHA::7}\`\nBranch: \`$GITHUB_REF_NAME\`\nBy: $GITHUB_ACTOR\",\"color\":15158332,\"url\":\"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID\"}]}" \
-            "${{ secrets.DISCORD_WEBHOOK_URL }}"
