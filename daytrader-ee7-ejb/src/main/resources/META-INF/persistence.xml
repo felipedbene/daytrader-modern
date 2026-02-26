@@ -31,9 +31,10 @@
         <exclude-unlisted-classes>true</exclude-unlisted-classes>
         <shared-cache-mode>NONE</shared-cache-mode>
         <properties>
-            <!-- create-tables: creates tables on first startup, skips if they already exist.
-                 Avoids PostgreSQL "current transaction is aborted" error that
-                 create-or-extend-tables causes when tables already exist. -->
+            <!-- Tell EclipseLink we're on PostgreSQL so it uses DOUBLE PRECISION
+                 instead of DOUBLE, and other PG-correct type mappings. -->
+            <property name="eclipselink.target-database" value="PostgreSQL"/>
+            <!-- create-tables: creates tables on first startup, skips if they already exist. -->
             <property name="eclipselink.ddl-generation" value="create-tables"/>
             <property name="eclipselink.ddl-generation.output-mode" value="database"/>
         </properties>
