@@ -1,10 +1,14 @@
-<%-- Redirect already-authenticated OIDC users straight to home --%>
+<%-- Redirect already-authenticated users straight to home --%>
 <%
 javax.servlet.http.HttpSession _s = request.getSession(false);
 if (_s != null && _s.getAttribute("uidBean") != null) {
     response.sendRedirect(request.getContextPath() + "/app?action=home");
     return;
 }
+%>
+<%-- Auto-login when Authentik proxy passes the authenticated user header --%>
+<%
+String authentikUser = request.getHeader("X-authentik-username");
 %>
 <!DOCTYPE html>
 <%@ page session="false"%>
@@ -36,10 +40,10 @@ if (_s != null && _s.getAttribute("uidBean") != null) {
             <%
                 }
             %>
-            <form action="app" method="POST">
+            <form id="loginForm" action="app" method="POST">
                 <div class="dt-form-group">
                     <label for="uid">Username</label>
-                    <input type="text" id="uid" name="uid" value="uid:0" style="width:100%;">
+                    <input type="text" id="uid" name="uid" value="<%= authentikUser != null ? authentikUser : "uid:0" %>" style="width:100%;">
                 </div>
                 <div class="dt-form-group">
                     <label for="passwd">Password</label>
@@ -56,5 +60,8 @@ if (_s != null && _s.getAttribute("uidBean") != null) {
     <footer class="dt-footer">
         Apache DayTrader Performance Benchmark Sample
     </footer>
+<% if (authentikUser != null) { %>
+<script>document.getElementById('loginForm').submit();</script>
+<% } %>
 </body>
 </html>

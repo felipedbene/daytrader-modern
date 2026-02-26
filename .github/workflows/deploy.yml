@@ -100,7 +100,15 @@ jobs:
           if [ "$code" = "000" ]; then
             echo "⚠️  Liberty not responding — checking logs..."
             $SSH "cd $DEPLOY_DIR && docker compose logs --tail=30" 2>/dev/null || true
+            rm -f ~/.ssh/p8_deploy
+            exit 1
           fi
+
+          echo "🗄️ Seeding database (buildDBTables → buildDB)..."
+          $SSH "curl -sf --max-time 120 'http://127.0.0.1:9080/daytrader/config?action=buildDBTables'" \
+            && echo "  ✅ Tables created" || echo "  ⚠️ buildDBTables returned non-zero (tables may already exist)"
+          $SSH "curl -sf --max-time 300 'http://127.0.0.1:9080/daytrader/config?action=buildDB'" \
+            && echo "  ✅ Test data seeded" || echo "  ⚠️ buildDB returned non-zero"
 
           rm -f ~/.ssh/p8_deploy
 
