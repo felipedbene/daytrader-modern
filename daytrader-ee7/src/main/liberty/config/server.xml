@@ -30,6 +30,7 @@
     </featureManager>
 
     <authData id="TradeAdminAuthData" user="admin" password="changeit"/>
+    <authData id="TradeDataSourceAuthData" user="${DB_USER}" password="${DB_PASSWORD}"/>
 
 	<!-- allow reuse of 'busy' ports for fast server recycling on linux (where ports remain blocked for up to 2 mins after server stops) ${tradelite.http.port} set in bootstrap.properties -->
 	<httpEndpoint host="*" httpPort="9080" httpsPort="9443" id="defaultHttpEndpoint">
