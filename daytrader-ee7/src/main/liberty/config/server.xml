@@ -30,6 +30,8 @@
 
     <!-- Default SSL/TLS config (required for OIDC client) -->
     <keyStore id="defaultKeyStore" password="liberty-ks-2026"/>
+    <keyStore id="defaultTrustStore" location="${env.JAVA_HOME}/lib/security/cacerts" password="changeit" type="PKCS12"/>
+    <ssl id="defaultSSLConfig" keyStoreRef="defaultKeyStore" trustStoreRef="defaultTrustStore"/>
 
     <!-- Auth filter: protect entire /daytrader app with OIDC -->
     <authFilter id="appAuthFilter">

@@ -10,10 +10,10 @@ RUN update-ca-trust \
                -storepass changeit -noprompt -alias homelab-ca \
                -file /etc/pki/ca-trust/source/anchors/homelab-ca.crt
 
-# PostgreSQL JDBC driver
-RUN mkdir -p /opt/ibm/wlp/usr/shared/resources/postgresql \
+# PostgreSQL JDBC driver (Open Liberty uses /opt/ol/wlp, not /opt/ibm/wlp)
+RUN mkdir -p /opt/ol/wlp/usr/shared/resources/postgresql \
     && curl -sL https://jdbc.postgresql.org/download/postgresql-42.7.1.jar \
-       -o /opt/ibm/wlp/usr/shared/resources/postgresql/postgresql-42.7.1.jar
+       -o /opt/ol/wlp/usr/shared/resources/postgresql/postgresql-42.7.1.jar
 
 # Server config + EAR
 COPY daytrader-ee7/src/main/liberty/config/server.xml /config/server.xml
