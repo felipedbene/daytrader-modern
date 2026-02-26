@@ -72,6 +72,16 @@ jobs:
           fi
 
           echo "✅ Uploaded to MinIO: daytrader-${TIMESTAMP}.ear"
+          
+          # Upload PostgreSQL JDBC driver if not already present
+          if ! mc stat "homelab/$MINIO_BUCKET/postgresql-42.7.1.jar" >/dev/null 2>&1; then
+            echo "📦 Downloading PostgreSQL JDBC driver..."
+            curl -sL https://jdbc.postgresql.org/download/postgresql-42.7.1.jar -o /tmp/postgresql-42.7.1.jar
+            mc cp /tmp/postgresql-42.7.1.jar "homelab/$MINIO_BUCKET/postgresql-42.7.1.jar"
+            echo "✅ PostgreSQL JDBC driver uploaded to MinIO"
+          else
+            echo "✅ PostgreSQL JDBC driver already in MinIO"
+          fi
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
