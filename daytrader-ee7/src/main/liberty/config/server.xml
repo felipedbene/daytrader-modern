@@ -95,7 +95,10 @@
 	
 	<dataSource connectionManagerRef="conMgr1" id="PostgresDataSource" isolationLevel="TRANSACTION_READ_COMMITTED" jndiName="jdbc/TradeDataSource" statementCacheSize="60">
 		<jdbcDriver libraryRef="postgresLib"/>
-		<properties URL="jdbc:postgresql://${env.DB_HOST:10.0.100.104}:${env.DB_PORT:5432}/${env.DB_NAME:tradedb}"
+		<properties.postgresql
+			serverName="${env.DB_HOST:10.0.100.104}"
+			portNumber="${env.DB_PORT:5432}"
+			databaseName="${env.DB_NAME:tradedb}"
 			user="${env.DB_USER:daytrader}"
 			password="${env.DB_PASSWORD}"/>
 	</dataSource>

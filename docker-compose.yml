@@ -18,5 +18,5 @@ services:
       - OIDC_DISCOVERY_URL=${OIDC_DISCOVERY_URL:-https://auth.k8s.debene.name/application/o/daytrader/.well-known/openid-configuration}
       - OIDC_REDIRECT_HOST=${OIDC_REDIRECT_HOST:-https://aix.debene.dev}
     extra_hosts:
-      - "auth.k8s.debene.name:10.0.100.104"
+      - "auth.k8s.debene.name:10.0.100.115"
     restart: unless-stopped
