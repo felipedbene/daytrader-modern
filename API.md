@@ -53,21 +53,22 @@ The application now includes JAX-RS REST API endpoints under `/api`:
 
 ### PostgreSQL Support
 
-The application now supports PostgreSQL in addition to Derby. To use PostgreSQL:
+The application is configured to use PostgreSQL by default with these connection details:
 
-1. Edit `daytrader-ee7/src/main/liberty/config/server.xml`
-2. Comment out the Derby datasource section
-3. Uncomment the PostgreSQL datasource section
-4. Download PostgreSQL JDBC driver:
-   ```bash
-   wget https://jdbc.postgresql.org/download/postgresql-42.7.1.jar -P daytrader-ee7/target/liberty/wlp/usr/shared/resources/postgresql/
-   ```
-5. Set environment variables:
-   - `DB_HOST` - PostgreSQL host (default: localhost)
-   - `DB_PORT` - PostgreSQL port (default: 5432)
-   - `DB_NAME` - Database name (default: tradedb)
-   - `DB_USER` - Database user
-   - `DB_PASSWORD` - Database password
+- **Host:** 10.0.100.104 (MetalLB LoadBalancer, reachable from AIX)
+- **Port:** 5432
+- **Database:** tradedb
+- **Username:** daytrader
+- **Password:** daytrader-p8-2026
+
+These are built-in defaults in `server.xml`. You can override them with environment variables:
+- `DB_HOST` - PostgreSQL host
+- `DB_PORT` - PostgreSQL port
+- `DB_NAME` - Database name
+- `DB_USER` - Database user
+- `DB_PASSWORD` - Database password
+
+**For AIX deployment:** See [AIX_DEPLOY.md](AIX_DEPLOY.md) for complete setup instructions including JDBC driver installation.
 
 ## Building
 
@@ -75,9 +76,23 @@ The application now supports PostgreSQL in addition to Derby. To use PostgreSQL:
 mvn clean package -DskipTests
 ```
 
-## Running with Docker Compose
+## Deployment
 
-The easiest way to run with PostgreSQL:
+### Primary: AIX with Liberty (P8 POWER)
+
+The main deployment target is AIX 7.2 on IBM POWER8. See [AIX_DEPLOY.md](AIX_DEPLOY.md) for:
+- PostgreSQL JDBC driver installation
+- Server configuration
+- Deployment via GitHub Actions
+- Troubleshooting
+
+Access the application at:
+- Web UI: http://10.0.1.132:9082/daytrader
+- REST API: http://10.0.1.132:9082/daytrader/api/market
+
+### Secondary: Docker Compose (Testing)
+
+For local testing with Docker:
 
 ```bash
 docker-compose up
@@ -87,18 +102,16 @@ This will start:
 - PostgreSQL database
 - DayTrader application on port 9082
 
-Access the application at:
-- Web UI: http://localhost:9082/daytrader
-- REST API: http://localhost:9082/daytrader/api/market
+Access at http://localhost:9082/daytrader
 
-## Running Locally with Liberty
+### Local Dev with Liberty
 
 ```bash
 cd daytrader-ee7
 mvn liberty:run
 ```
 
-Access at http://localhost:9082/daytrader
+Note: You may want to switch to Derby for local dev (edit server.xml)
 
 ## Docker Image
 

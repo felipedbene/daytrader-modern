@@ -21,7 +21,7 @@
     </featureManager>
 
 	<!-- allow reuse of 'busy' ports for fast server recycling on linux (where ports remain blocked for up to 2 mins after server stops) ${tradelite.http.port} set in bootstrap.properties --> 
-	<httpEndpoint host="*" httpPort="9082" httpsPort="9443" id="defaultHttpEndpoint"> 
+	<httpEndpoint host="*" httpPort="9080" httpsPort="9443" id="defaultHttpEndpoint"> 
 		<tcpOptions soReuseAddr="true"/> 
 		<httpOptions maxKeepAliveRequests="-1"/>
 	</httpEndpoint>
@@ -32,28 +32,38 @@
 
 	<connectionManager agedTimeout="-1" connectionTimeout="0" id="conMgr1" maxIdleTime="-1" maxPoolSize="100" minPoolSize="100" purgePolicy="FailingConnectionOnly" reapTime="-1"/> 
 
+	<!-- ========================= DATABASE CONFIGURATION ========================= -->
+	<!-- Switch between Derby (local dev) and PostgreSQL (AIX production) -->
+	<!-- Comment out one datasource block and uncomment the other -->
+
+	<!-- Derby DataSource (for local development ONLY) -->
+	<!--
 	<jdbcDriver id="DerbyEmbedded" libraryRef="DerbyLib"/>
 	<library filesetRef="DerbyFileset" id="DerbyLib"/>
 	<fileset dir="${shared.resource.dir}/DerbyLibs" id="DerbyFileset" includes="derby-10.14.2.0.jar"/>
 
-	<authData id="TradeDataSourceAuthData" password="db_password" user="db_username"/>
-	<authData id="TradeAdminAuthData" password="db_password" user="db_username"/>
-
-	<!-- Derby DataSource (default for local development) -->
-	<dataSource connectionManagerRef="conMgr1" id="DefaultDataSource" isolationLevel="TRANSACTION_READ_COMMITTED" jdbcDriverRef="DerbyEmbedded" jndiName="jdbc/TradeDataSource" statementCacheSize="60"> 
+	<dataSource connectionManagerRef="conMgr1" id="DerbyDataSource" isolationLevel="TRANSACTION_READ_COMMITTED" jdbcDriverRef="DerbyEmbedded" jndiName="jdbc/TradeDataSource" statementCacheSize="60"> 
 		<properties.derby.embedded createDatabase="create" databaseName="${shared.resource.dir}/data/tradedb" password="db_password" user="db_username"/> 
 	</dataSource>
+	-->
 
-	<!-- PostgreSQL DataSource (for production) - Uncomment to use PostgreSQL
+	<!-- PostgreSQL DataSource (for AIX production - ACTIVE) -->
+	<!-- PostgreSQL JDBC driver: /opt/IBM/WebSphere/Liberty/usr/shared/resources/postgresql/postgresql-42.7.1.jar -->
 	<library id="postgresLib">
 		<fileset dir="${shared.resource.dir}/postgresql" includes="*.jar"/>
 	</library>
-	<dataSource connectionManagerRef="conMgr1" id="PostgresDataSource" isolationLevel="TRANSACTION_READ_COMMITTED" jdbcDriverRef="PostgresDriver" jndiName="jdbc/TradeDataSource" statementCacheSize="60">
+	
+	<dataSource connectionManagerRef="conMgr1" id="PostgresDataSource" isolationLevel="TRANSACTION_READ_COMMITTED" jndiName="jdbc/TradeDataSource" statementCacheSize="60">
 		<jdbcDriver libraryRef="postgresLib"/>
-		<properties.postgresql serverName="${env.DB_HOST}" portNumber="${env.DB_PORT}" 
-		                       databaseName="${env.DB_NAME}" user="${env.DB_USER}" password="${env.DB_PASSWORD}"/>
+		<properties.postgresql 
+			serverName="${env.DB_HOST:10.0.100.104}" 
+			portNumber="${env.DB_PORT:5432}" 
+			databaseName="${env.DB_NAME:tradedb}" 
+			user="${env.DB_USER:daytrader}" 
+			password="${env.DB_PASSWORD:daytrader-p8-2026}"
+			currentSchema="public"/>
 	</dataSource>
-	-->
+	<!-- ========================================================================== -->
 
 	<messagingEngine id="defaultME">
 		<queue id="TradeBrokerQueue"/>

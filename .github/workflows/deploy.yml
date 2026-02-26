@@ -97,6 +97,8 @@ jobs:
     runs-on: [self-hosted, homelab]
     if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/master'
     steps:
+      - uses: actions/checkout@v4
+      
       - name: Deploy EAR to AIX
         env:
           AIX_HOST: ${{ secrets.AIX_HOST }}
@@ -116,7 +118,7 @@ jobs:
           APP_PORT=$($SSH "grep -o 'httpPort=\"[0-9]*\"' \
             $LIBERTY/usr/servers/defaultServer/server.xml 2>/dev/null \
             | grep -o '[0-9]*'" 2>/dev/null || true)
-          APP_PORT=${APP_PORT:-9082}
+          APP_PORT=${APP_PORT:-9080}
           echo "🔍 Liberty HTTP port: $APP_PORT"
           APP_URL="http://localhost:${APP_PORT}/daytrader"
 
@@ -142,7 +144,17 @@ jobs:
           echo "⏹️  Stopping Liberty..."
           $SSH "$JAVA $LIBERTY/bin/server stop defaultServer 2>/dev/null" || true
 
-          # ── 2. Deploy latest EAR (use HTTP — AIX curl lacks homelab CA) ────
+          # ── 2. Deploy PG JDBC driver ─────────────────────────────────────
+          echo "📦 Installing PostgreSQL JDBC driver..."
+          $SSH "mkdir -p $LIBERTY/usr/shared/resources/postgresql && \
+            curl -s --max-time 60 http://10.0.2.81:9000/daytrader-artifacts/postgresql-42.7.1.jar \
+            -o $LIBERTY/usr/shared/resources/postgresql/postgresql-42.7.1.jar"
+
+          # ── 3. Deploy server.xml from repo ──────────────────────────────────
+          echo "📦 Deploying server.xml..."
+          $SSH "cat > $LIBERTY/usr/servers/defaultServer/server.xml" < daytrader-ee7/src/main/liberty/config/server.xml
+
+          # ── 4. Deploy latest EAR (use HTTP — AIX curl lacks homelab CA) ────
           echo "📦 Deploying EAR..."
           $SSH "curl -s --max-time 120 http://10.0.2.81:9000/daytrader-artifacts/daytrader-latest.ear \
             -o $LIBERTY/usr/servers/defaultServer/apps/daytrader-ee7.ear"
