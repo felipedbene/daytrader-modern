@@ -85,7 +85,8 @@ jobs:
           echo "🧹 Dropping old tables so EclipseLink can recreate with correct PG types..."
           $SSH "docker run --rm -e PGPASSWORD=\$(grep DB_PASSWORD $DEPLOY_DIR/.env 2>/dev/null | cut -d= -f2) \
             postgres:16-alpine psql -h 10.0.100.104 -U daytrader -d tradedb -c \
-            'DROP TABLE IF EXISTS holdingejb, orderejb, accountejb, accountprofileejb, quoteejb, keygenejb CASCADE;'" \
+            'DROP TABLE IF EXISTS holdingejb, orderejb, accountejb, accountprofileejb, quoteejb, keygenejb CASCADE;
+             CREATE TABLE IF NOT EXISTS keygenejb (keyval INTEGER NOT NULL, keyname VARCHAR(250) NOT NULL, PRIMARY KEY (keyname));'" \
             2>&1 || echo "  (psql not available or DB unreachable — EclipseLink will handle it)"
 
           echo "🔄 Restarting container..."
@@ -126,7 +127,7 @@ jobs:
           $SSH "cd $DEPLOY_DIR && docker compose logs --tail=50 2>/dev/null" | grep -iE 'error|exception|TradeDirect|DSRA|CWWJP' | tail -10 || echo "  (no errors found)"
 
           echo "🔍 Verifying quotes exist after seeding..."
-          QUOTE_CHECK=$($SSH "curl -sf --max-time 15 'http://127.0.0.1:9080/daytrader/api/quotes'" 2>/dev/null | head -c 300 || true)
+          QUOTE_CHECK=$($SSH "curl -s --max-time 15 'http://127.0.0.1:9080/daytrader/api/quotes'" 2>/dev/null | head -c 500 || true)
           if echo "$QUOTE_CHECK" | grep -q 'symbol'; then
             echo "  ✅ Quotes verified in DB"
           else
@@ -166,7 +167,7 @@ jobs:
           $SSH "cd $DEPLOY_DIR && docker compose logs --tail=30 2>/dev/null" | grep -iE 'error|exception|DSRA|CWWJP|eclipselink|ddl' | tail -10 || echo "  (no errors found)"
 
           echo "🔍 Verifying quotes persist after restart..."
-          QUOTE_CHECK=$($SSH "curl -sf --max-time 15 'http://127.0.0.1:9080/daytrader/api/quotes'" 2>/dev/null | head -c 300 || true)
+          QUOTE_CHECK=$($SSH "curl -s --max-time 15 'http://127.0.0.1:9080/daytrader/api/quotes'" 2>/dev/null | head -c 500 || true)
           if echo "$QUOTE_CHECK" | grep -q 'symbol'; then
             echo "  ✅ Quotes still present after restart"
           else
@@ -175,7 +176,7 @@ jobs:
           fi
 
           echo "🔍 Checking market summary API..."
-          $SSH "curl -sf --max-time 15 'http://127.0.0.1:9080/daytrader/api/market'" 2>/dev/null | head -c 300 || echo "  (market API failed)"
+          $SSH "curl -s --max-time 15 'http://127.0.0.1:9080/daytrader/api/market'" 2>/dev/null | head -c 500 || echo "  (market API failed)"
 
           rm -f ~/.ssh/p8_deploy
 
