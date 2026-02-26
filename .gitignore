@@ -10,3 +10,4 @@
 *.crt
 *.key
 *.pem
+!ca/homelab-ca.crt
