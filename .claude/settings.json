@@ -3,7 +3,10 @@
     "allow": [
       "Bash(grep -rn \"dt-main-narrow\\\\|dt-card-body\\\\|dt-test-table\\\\|dt-badge\\\\|tableHeaderMarket\" daytrader-ee7-web/src/main/webapp/*.jsp daytrader-ee7-web/src/main/webapp/*.html)",
       "Bash(grep -rn \"<%@ page\" daytrader-ee7-web/src/main/webapp/*.jsp)",
-      "Bash(xargs ls -la)"
+      "Bash(xargs ls -la)",
+      "Bash(git add .github/workflows/deploy.yml)",
+      "Bash(git commit:*)",
+      "Bash(git push origin master)"
     ],
     "additionalDirectories": [
       "/Users/felipe/workspace/daytrader-modern/daytrader-ee7-web/src/main/java/com/ibm/websphere/samples/daytrader/web",
