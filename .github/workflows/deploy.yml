@@ -83,8 +83,8 @@ jobs:
           $SSH "printf 'DB_PASSWORD=%s\n' '${DB_PASSWORD}' > $DEPLOY_DIR/.env && chmod 600 $DEPLOY_DIR/.env"
 
           echo "🧹 Dropping old tables so EclipseLink can recreate with correct PG types..."
-          $SSH "PGPASSWORD=\$(grep DB_PASSWORD $DEPLOY_DIR/.env 2>/dev/null | cut -d= -f2) \
-            psql -h 10.0.100.104 -U daytrader -d tradedb -c \
+          $SSH "docker run --rm -e PGPASSWORD=\$(grep DB_PASSWORD $DEPLOY_DIR/.env 2>/dev/null | cut -d= -f2) \
+            postgres:16-alpine psql -h 10.0.100.104 -U daytrader -d tradedb -c \
             'DROP TABLE IF EXISTS holdingejb, orderejb, accountejb, accountprofileejb, quoteejb, keygenejb CASCADE;'" \
             2>&1 || echo "  (psql not available or DB unreachable — EclipseLink will handle it)"
 
