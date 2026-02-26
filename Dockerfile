@@ -8,7 +8,6 @@ RUN apt-get update && apt-get install -y unzip curl && rm -rf /var/lib/apt/lists
     && curl -sL -o /tmp/openliberty.zip "https://public.dhe.ibm.com/ibmdl/export/pub/software/openliberty/runtime/release/24.0.0.12/openliberty-javaee8-24.0.0.12.zip" \
     && mkdir -p /opt/ibm \
     && unzip -q /tmp/openliberty.zip -d /opt/ibm \
-    && mv /opt/ibm/wlp ${LIBERTY_HOME} \
     && rm /tmp/openliberty.zip \
     && useradd -r -u 1001 -g 0 default
 
