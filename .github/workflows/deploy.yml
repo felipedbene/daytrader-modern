@@ -104,10 +104,10 @@ jobs:
             exit 1
           fi
 
-          echo "🗄️ Seeding database (buildDBTables → buildDB)..."
-          $SSH "curl -sf --max-time 120 'http://127.0.0.1:9080/daytrader/config?action=buildDBTables'" \
-            && echo "  ✅ Tables created" || echo "  ⚠️ buildDBTables returned non-zero (tables may already exist)"
-          $SSH "curl -sf --max-time 300 'http://127.0.0.1:9080/daytrader/config?action=buildDB'" \
+          # Tables are auto-created by JPA/EclipseLink at startup.
+          # buildDBTables uses raw DDL but has no PostgreSQL script — skip it.
+          echo "🗄️ Seeding database (buildDB via EJB/JPA)..."
+          $SSH "curl -sf --max-time 600 'http://127.0.0.1:9080/daytrader/config?action=buildDB'" \
             && echo "  ✅ Test data seeded" || echo "  ⚠️ buildDB returned non-zero"
 
           echo "👤 Registering Authentik user in DayTrader..."
