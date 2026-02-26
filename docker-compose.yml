@@ -1,36 +1,16 @@
-version: '3.8'
-
 services:
-  postgres:
-    image: postgres:14
-    environment:
-      POSTGRES_DB: tradedb
-      POSTGRES_USER: trade
-      POSTGRES_PASSWORD: trade123
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U trade"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   daytrader:
-    build: .
+    image: daytrader-modern:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
-      - "9082:9082"
+      - "9080:9080"
       - "9443:9443"
     environment:
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_NAME: tradedb
-      DB_USER: trade
-      DB_PASSWORD: trade123
-    depends_on:
-      postgres:
-        condition: service_healthy
-
-volumes:
-  postgres-data:
+      - DB_HOST=10.0.100.104
+      - DB_PORT=5432
+      - DB_NAME=tradedb
+      - DB_USER=daytrader
+      - DB_PASSWORD=daytrader-p8-2026
+    restart: unless-stopped

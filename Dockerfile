@@ -1,14 +1,13 @@
-FROM icr.io/appcafe/open-liberty:full-java11-openj9-ubi
+FROM websphere-liberty:full-java17-openj9
 
-# Copy server configuration
+# PostgreSQL JDBC driver
+COPY --chown=1001:0 lib/postgresql-42.7.1.jar /opt/ibm/wlp/usr/shared/resources/postgresql/postgresql-42.7.1.jar
+
+# Server config
 COPY --chown=1001:0 daytrader-ee7/src/main/liberty/config/server.xml /config/server.xml
 
-# Copy application EAR
-COPY --chown=1001:0 daytrader-ee7/target/daytrader-ee7.ear /config/apps/
+# DayTrader EAR (built by CI or locally)
+COPY --chown=1001:0 daytrader-ee7/target/daytrader-ee7.ear /config/apps/daytrader-ee7.ear
 
-# Optional: Copy PostgreSQL JDBC driver (uncomment if using PostgreSQL)
-# COPY --chown=1001:0 postgresql-42.*.jar /opt/ol/wlp/usr/shared/resources/postgresql/
-
-# Configure Liberty server
+# Pre-configure server for faster startup
 RUN configure.sh
-
