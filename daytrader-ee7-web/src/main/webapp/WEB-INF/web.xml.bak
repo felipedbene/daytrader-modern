@@ -155,6 +155,9 @@
         <message-destination-link>daytrader-ee7-ejb#TradeStreamerTopic</message-destination-link>
         <lookup-name>java:/jms/TradeStreamerTopic</lookup-name>
     </message-destination-ref>
+    -->
+
+    -->
 
     <!-- Only protect REST API with OIDC auth -->
     <security-constraint>
