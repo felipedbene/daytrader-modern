@@ -13,6 +13,11 @@
         <feature>jsonp-1.0</feature>
         <feature>beanValidation-1.1</feature>
         <feature>localConnector-1.0</feature>
+        <!-- REST API features -->
+        <feature>jaxrs-2.1</feature>
+        <feature>jsonb-1.0</feature>
+        <!-- JDBC feature for PostgreSQL -->
+        <feature>jdbc-4.2</feature>
     </featureManager>
 
 	<!-- allow reuse of 'busy' ports for fast server recycling on linux (where ports remain blocked for up to 2 mins after server stops) ${tradelite.http.port} set in bootstrap.properties --> 
@@ -34,9 +39,21 @@
 	<authData id="TradeDataSourceAuthData" password="db_password" user="db_username"/>
 	<authData id="TradeAdminAuthData" password="db_password" user="db_username"/>
 
+	<!-- Derby DataSource (default for local development) -->
 	<dataSource connectionManagerRef="conMgr1" id="DefaultDataSource" isolationLevel="TRANSACTION_READ_COMMITTED" jdbcDriverRef="DerbyEmbedded" jndiName="jdbc/TradeDataSource" statementCacheSize="60"> 
 		<properties.derby.embedded createDatabase="create" databaseName="${shared.resource.dir}/data/tradedb" password="db_password" user="db_username"/> 
 	</dataSource>
+
+	<!-- PostgreSQL DataSource (for production) - Uncomment to use PostgreSQL
+	<library id="postgresLib">
+		<fileset dir="${shared.resource.dir}/postgresql" includes="*.jar"/>
+	</library>
+	<dataSource connectionManagerRef="conMgr1" id="PostgresDataSource" isolationLevel="TRANSACTION_READ_COMMITTED" jdbcDriverRef="PostgresDriver" jndiName="jdbc/TradeDataSource" statementCacheSize="60">
+		<jdbcDriver libraryRef="postgresLib"/>
+		<properties.postgresql serverName="${env.DB_HOST}" portNumber="${env.DB_PORT}" 
+		                       databaseName="${env.DB_NAME}" user="${env.DB_USER}" password="${env.DB_PASSWORD}"/>
+	</dataSource>
+	-->
 
 	<messagingEngine id="defaultME">
 		<queue id="TradeBrokerQueue"/>

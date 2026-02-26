@@ -73,6 +73,25 @@ jobs:
 
           echo "✅ Uploaded to MinIO: daytrader-${TIMESTAMP}.ear"
 
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        run: |
+          IMAGE_TAG=ghcr.io/felipedbene/daytrader-modern:latest
+          IMAGE_TAG_SHA=ghcr.io/felipedbene/daytrader-modern:${{ github.sha }}
+          
+          docker build -t "$IMAGE_TAG" -t "$IMAGE_TAG_SHA" .
+          docker push "$IMAGE_TAG"
+          docker push "$IMAGE_TAG_SHA"
+          
+          echo "✅ Docker image pushed: $IMAGE_TAG"
+          echo "✅ Docker image pushed: $IMAGE_TAG_SHA"
+
   deploy:
     needs: build
     runs-on: [self-hosted, homelab]
