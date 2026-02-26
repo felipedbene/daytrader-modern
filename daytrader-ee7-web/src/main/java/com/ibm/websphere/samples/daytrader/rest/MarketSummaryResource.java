@@ -15,6 +15,8 @@
  */
 package com.ibm.websphere.samples.daytrader.rest;
 
+import java.util.ArrayList;
+
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -45,6 +47,12 @@ public class MarketSummaryResource {
     public Response getMarketSummary() {
         try {
             MarketSummaryDataBean marketSummary = tradeAction.getMarketSummary();
+            if (marketSummary.getTopGainers() != null) {
+                marketSummary.setTopGainers(new ArrayList<>(marketSummary.getTopGainers()));
+            }
+            if (marketSummary.getTopLosers() != null) {
+                marketSummary.setTopLosers(new ArrayList<>(marketSummary.getTopLosers()));
+            }
             return Response.ok(marketSummary).build();
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)

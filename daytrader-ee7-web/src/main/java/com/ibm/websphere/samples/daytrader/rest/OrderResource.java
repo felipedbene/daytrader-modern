@@ -16,6 +16,7 @@
 package com.ibm.websphere.samples.daytrader.rest;
 
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.Collection;
 
 import javax.inject.Inject;
@@ -67,9 +68,9 @@ public class OrderResource {
         try {
             Collection<?> orders = tradeAction.getOrders(userId);
             if (orders == null || orders.isEmpty()) {
-                return Response.ok(new Object[0]).build();  // Return empty array instead of 404
+                return Response.ok(new ArrayList<>()).build();
             }
-            return Response.ok(orders).build();
+            return Response.ok(new ArrayList<>(orders)).build();
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity(new ErrorResponse("Failed to retrieve orders", e.getMessage()))

@@ -15,6 +15,7 @@
  */
 package com.ibm.websphere.samples.daytrader.rest;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 import javax.inject.Inject;
@@ -73,7 +74,7 @@ public class QuoteResource {
     public Response getAllQuotes() {
         try {
             Collection<?> quotes = tradeAction.getAllQuotes();
-            return Response.ok(quotes).build();
+            return Response.ok(new ArrayList<>(quotes)).build();
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity(new ErrorResponse("Failed to retrieve quotes", e.getMessage()))

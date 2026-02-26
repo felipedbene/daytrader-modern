@@ -16,6 +16,7 @@
 package com.ibm.websphere.samples.daytrader.rest;
 
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.Collection;
 
 import javax.inject.Inject;
@@ -64,9 +65,9 @@ public class PortfolioResource {
         try {
             Collection<?> holdings = tradeAction.getHoldings(userId);
             if (holdings == null || holdings.isEmpty()) {
-                return Response.ok(new Object[0]).build();  // Return empty array instead of 404
+                return Response.ok(new ArrayList<>()).build();
             }
-            return Response.ok(holdings).build();
+            return Response.ok(new ArrayList<>(holdings)).build();
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity(new ErrorResponse("Failed to retrieve portfolio", e.getMessage()))
