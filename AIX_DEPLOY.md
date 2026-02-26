@@ -14,7 +14,7 @@ The application connects to PostgreSQL running in your K8s cluster:
 - **Port:** 5432
 - **Database:** tradedb
 - **Username:** daytrader
-- **Password:** daytrader-p8-2026
+- **Password:** (set via DB_PASSWORD env var)
 
 These are the **default values** in server.xml. You can override them with environment variables if needed.
 
@@ -57,7 +57,7 @@ Look for this section:
         portNumber="${env.DB_PORT:5432}" 
         databaseName="${env.DB_NAME:tradedb}" 
         user="${env.DB_USER:daytrader}" 
-        password="${env.DB_PASSWORD:daytrader-p8-2026}"
+        password="${env.DB_PASSWORD:(set via DB_PASSWORD env var)}"
         currentSchema="public"/>
 </dataSource>
 ```
@@ -80,7 +80,7 @@ echo "DB_HOST=10.0.100.104" >> /opt/IBM/WebSphere/Liberty/usr/servers/defaultSer
 echo "DB_PORT=5432" >> /opt/IBM/WebSphere/Liberty/usr/servers/defaultServer/server.env
 echo "DB_NAME=tradedb" >> /opt/IBM/WebSphere/Liberty/usr/servers/defaultServer/server.env
 echo "DB_USER=daytrader" >> /opt/IBM/WebSphere/Liberty/usr/servers/defaultServer/server.env
-echo "DB_PASSWORD=daytrader-p8-2026" >> /opt/IBM/WebSphere/Liberty/usr/servers/defaultServer/server.env
+echo "DB_PASSWORD=(set via DB_PASSWORD env var)" >> /opt/IBM/WebSphere/Liberty/usr/servers/defaultServer/server.env
 ```
 
 ## Step 4: Deploy Application

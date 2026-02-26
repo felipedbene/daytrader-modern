@@ -14,7 +14,7 @@
 - Port: 5432
 - Database: tradedb
 - User: daytrader
-- Password: daytrader-p8-2026
+- Password: (set via DB_PASSWORD env var)
 
 **URLs:**
 - Web UI: http://10.0.1.132:9080/daytrader

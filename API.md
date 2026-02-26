@@ -59,7 +59,7 @@ The application is configured to use PostgreSQL by default with these connection
 - **Port:** 5432
 - **Database:** tradedb
 - **Username:** daytrader
-- **Password:** daytrader-p8-2026
+- **Password:** (set via DB_PASSWORD env var)
 
 These are built-in defaults in `server.xml`. You can override them with environment variables:
 - `DB_HOST` - PostgreSQL host

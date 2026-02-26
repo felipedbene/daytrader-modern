@@ -60,7 +60,7 @@
 			portNumber="${env.DB_PORT:5432}" 
 			databaseName="${env.DB_NAME:tradedb}" 
 			user="${env.DB_USER:daytrader}" 
-			password="${env.DB_PASSWORD:daytrader-p8-2026}"
+			password="${env.DB_PASSWORD}"
 			currentSchema="public"/>
 	</dataSource>
 	<!-- ========================================================================== -->
