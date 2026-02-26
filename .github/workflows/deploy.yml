@@ -92,13 +92,21 @@ jobs:
 
       - name: Build and push Docker image
         run: |
+          # Check if Docker daemon is available (self-hosted runners may not have it)
+          if ! docker info >/dev/null 2>&1; then
+            echo "⚠️  Docker daemon not available on this runner — skipping Docker build"
+            echo "   To enable Docker builds, ensure Docker is installed and the runner user"
+            echo "   is in the 'docker' group: sudo usermod -aG docker \$USER"
+            exit 0
+          fi
+
           IMAGE_TAG=ghcr.io/felipedbene/daytrader-modern:latest
           IMAGE_TAG_SHA=ghcr.io/felipedbene/daytrader-modern:${{ github.sha }}
-          
+
           docker build -t "$IMAGE_TAG" -t "$IMAGE_TAG_SHA" .
           docker push "$IMAGE_TAG"
           docker push "$IMAGE_TAG_SHA"
-          
+
           echo "✅ Docker image pushed: $IMAGE_TAG"
           echo "✅ Docker image pushed: $IMAGE_TAG_SHA"
 

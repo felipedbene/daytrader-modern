@@ -36,8 +36,44 @@
     </nav>
 
     <main class="dt-main">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
-            <span class="text-muted" style="font-size:0.8125rem;"><%=new java.util.Date()%></span>
+        <%
+            BigDecimal openBalance = accountData.getOpenBalance();
+            BigDecimal balance = accountData.getBalance();
+            BigDecimal holdingsTotal = FinancialUtils.computeHoldingsTotal(holdingDataBeans);
+            BigDecimal sumOfCashHoldings = balance.add(holdingsTotal);
+            BigDecimal gain = FinancialUtils.computeGain(sumOfCashHoldings, openBalance);
+            BigDecimal gainPercent = FinancialUtils.computeGainPercent(sumOfCashHoldings, openBalance);
+            boolean isGain = gain.doubleValue() >= 0;
+        %>
+
+        <!-- Hero Banner -->
+        <div class="dt-hero">
+            <div class="dt-hero-title">
+                Welcome back, <strong style="color:var(--text-primary);"><%=accountData.getProfileID()%></strong>
+                <span class="dt-badge dt-badge-blue" style="margin-left:0.5rem;">Account #<%=accountData.getAccountID()%></span>
+            </div>
+            <div class="dt-hero-grid">
+                <div class="dt-hero-item">
+                    <div class="dt-hero-label">Portfolio Value</div>
+                    <div class="dt-hero-value">$<%=sumOfCashHoldings%></div>
+                    <div class="dt-hero-sub">Cash + Holdings</div>
+                </div>
+                <div class="dt-hero-item">
+                    <div class="dt-hero-label">Total Gain / Loss</div>
+                    <div class="dt-hero-value <%= isGain ? "gain" : "loss" %>"><%=FinancialUtils.printGainHTML(gain)%></div>
+                    <div class="dt-hero-sub"><%=FinancialUtils.printGainPercentHTML(gainPercent)%> vs. opening</div>
+                </div>
+                <div class="dt-hero-item">
+                    <div class="dt-hero-label">Cash Balance</div>
+                    <div class="dt-hero-value" style="font-size:1.5rem;">$<%=balance%></div>
+                    <div class="dt-hero-sub">Available to invest</div>
+                </div>
+                <div class="dt-hero-item">
+                    <div class="dt-hero-label">Holdings</div>
+                    <div class="dt-hero-value" style="font-size:1.5rem;"><%=holdingDataBeans.size()%></div>
+                    <div class="dt-hero-sub">$<%=holdingsTotal%> invested</div>
+                </div>
+            </div>
         </div>
 
         <%
@@ -45,8 +81,8 @@
             if ((closedOrders != null) && (closedOrders.size() > 0)) {
         %>
         <div class="dt-alert dt-alert-warning">
-            <strong>Alert:</strong> The following order(s) have completed.
-            <table class="table" style="margin-top:0.5rem;">
+            <strong>Order Alert:</strong> The following order(s) have completed.
+            <table class="table" style="margin-top:0.75rem;">
                 <thead>
                     <tr class="tableHeader">
                         <td>Order ID</td><td>Status</td><td>Opened</td><td>Completed</td><td>Fee</td><td>Type</td><td>Symbol</td><td>Quantity</td>
@@ -78,75 +114,43 @@
             }
         %>
 
+        <!-- Account Stats -->
         <div class="dt-card">
             <div class="dt-card-header">
-                <h3>Welcome, <%=accountData.getProfileID()%></h3>
+                <h3>Account Details</h3>
+                <span style="font-size:0.75rem;color:var(--text-muted);"><%=new java.util.Date()%></span>
             </div>
-            <h3 class="dt-section-title" style="margin-top:0;">User Statistics</h3>
-            <div class="dt-stats-grid" style="grid-template-columns:1fr 1fr;">
+            <div class="dt-stats-grid">
                 <div class="dt-stat">
-                    <div class="dt-stat-label">Account ID</div>
-                    <div class="dt-stat-value" style="font-size:1rem;"><%=accountData.getAccountID()%></div>
-                </div>
-                <div class="dt-stat">
-                    <div class="dt-stat-label">Created</div>
-                    <div class="dt-stat-value" style="font-size:0.875rem;"><%=accountData.getCreationDate()%></div>
+                    <div class="dt-stat-label">Opening Balance</div>
+                    <div class="dt-stat-value">$<%=openBalance%></div>
                 </div>
                 <div class="dt-stat">
                     <div class="dt-stat-label">Total Logins</div>
-                    <div class="dt-stat-value" style="font-size:1rem;"><%=accountData.getLoginCount()%></div>
+                    <div class="dt-stat-value"><%=accountData.getLoginCount()%></div>
                 </div>
                 <div class="dt-stat">
-                    <div class="dt-stat-label">Session Created</div>
-                    <div class="dt-stat-value" style="font-size:0.875rem;"><%=(java.util.Date) session.getAttribute("sessionCreationDate")%></div>
-                </div>
-            </div>
-
-            <h3 class="dt-section-title">Account Summary</h3>
-            <%
-                BigDecimal openBalance = accountData.getOpenBalance();
-                BigDecimal balance = accountData.getBalance();
-                BigDecimal holdingsTotal = FinancialUtils.computeHoldingsTotal(holdingDataBeans);
-                BigDecimal sumOfCashHoldings = balance.add(holdingsTotal);
-                BigDecimal gain = FinancialUtils.computeGain(sumOfCashHoldings, openBalance);
-                BigDecimal gainPercent = FinancialUtils.computeGainPercent(sumOfCashHoldings, openBalance);
-            %>
-            <div class="dt-stats-grid" style="grid-template-columns:1fr 1fr;">
-                <div class="dt-stat">
-                    <div class="dt-stat-label">Cash Balance</div>
-                    <div class="dt-stat-value" style="font-size:1rem;">$<%=balance%></div>
+                    <div class="dt-stat-label">Account Created</div>
+                    <div class="dt-stat-value" style="font-size:0.8125rem;"><%=accountData.getCreationDate()%></div>
                 </div>
                 <div class="dt-stat">
-                    <div class="dt-stat-label">Number of Holdings</div>
-                    <div class="dt-stat-value" style="font-size:1rem;"><%=holdingDataBeans.size()%></div>
-                </div>
-                <div class="dt-stat">
-                    <div class="dt-stat-label">Holdings Total</div>
-                    <div class="dt-stat-value" style="font-size:1rem;">$<%=holdingsTotal%></div>
-                </div>
-                <div class="dt-stat">
-                    <div class="dt-stat-label">Cash + Holdings</div>
-                    <div class="dt-stat-value" style="font-size:1rem;">$<%=sumOfCashHoldings%></div>
-                </div>
-                <div class="dt-stat">
-                    <div class="dt-stat-label">Opening Balance</div>
-                    <div class="dt-stat-value" style="font-size:1rem;">$<%=openBalance%></div>
-                </div>
-                <div class="dt-stat">
-                    <div class="dt-stat-label">Current Gain/Loss</div>
-                    <div class="dt-stat-value" style="font-size:1rem;">$<%=FinancialUtils.printGainHTML(gain)%> <%=FinancialUtils.printGainPercentHTML(gainPercent)%></div>
+                    <div class="dt-stat-label">Session Started</div>
+                    <div class="dt-stat-value" style="font-size:0.8125rem;"><%=(java.util.Date) session.getAttribute("sessionCreationDate")%></div>
                 </div>
             </div>
         </div>
 
-        <div class="dt-card" style="margin-top:1.5rem;">
-            <div style="display:flex;justify-content:space-between;align-items:center;">
-                <span class="text-muted">Click any <a href="docs/glossary.html">symbol</a> for a quote or to trade.</span>
-                <form action="" style="display:flex;gap:0.5rem;align-items:center;">
-                    <input size="20" type="text" name="symbols" value="s:0, s:1, s:2, s:3, s:4">
-                    <input type="submit" name="action" value="quotes">
-                </form>
+        <!-- Quick Trade -->
+        <div class="dt-card">
+            <div class="dt-card-header">
+                <h3>Quick Quote</h3>
+                <span class="text-muted" style="font-size:0.75rem;">Enter symbols separated by commas</span>
             </div>
+            <form action="" style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;">
+                <input style="flex:1;min-width:200px;" type="text" name="symbols" value="s:0, s:1, s:2, s:3, s:4">
+                <input type="submit" name="action" value="quotes" style="white-space:nowrap;">
+            </form>
+            <p style="margin:0.75rem 0 0;font-size:0.75rem;">Click any <a href="docs/glossary.html">symbol</a> in your portfolio for a quote or to place a trade.</p>
         </div>
     </main>
 

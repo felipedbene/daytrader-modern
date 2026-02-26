@@ -38,46 +38,56 @@
     </nav>
 
     <main class="dt-main">
-        <div class="dt-card">
-            <div class="dt-card-header">
-                <h2>Overview</h2>
+
+        <!-- Hero -->
+        <div class="dt-landing-hero">
+            <h1>DayTrader</h1>
+            <p>A high-performance Java EE trading benchmark built on WebSphere Liberty.
+               Real-world workloads — real-time market data, portfolio management, and asynchronous order processing.</p>
+            <a href="app" class="dt-landing-cta">&#9654; Open Trading Platform</a>
+        </div>
+
+        <!-- Feature Cards -->
+        <div class="dt-feature-grid">
+            <div class="dt-feature-card">
+                <span class="dt-feature-icon">&#128200;</span>
+                <h3>Live Market Data</h3>
+                <p>Real-time stock quotes via WebSocket, market summary with top gainers and losers, and instant price change notifications.</p>
+                <a href="app?action=mksummary" style="font-size:0.8125rem;font-weight:600;margin-top:0.75rem;display:inline-block;">View Market Summary &rarr;</a>
             </div>
-            <div class="dt-card-body">
-                <p>The DayTrader performance benchmark sample provides a suite of workloads for characterizing performance of
-                    Java EE Application Servers. The workloads consist of an end-to-end web application and a full set of primitives.
-                    The applications are a collection of Java classes, Java Servlets, JavaServer Pages, and Enterprise Java Beans
-                    built to open Java EE APIs. Together these provide versatile and portable test cases designed to measure
-                    aspects of scalability and performance.</p>
+            <div class="dt-feature-card">
+                <span class="dt-feature-icon">&#128179;</span>
+                <h3>Portfolio Management</h3>
+                <p>Track your holdings with real-time gain/loss calculations, cost basis analysis, and one-click sell orders.</p>
+                <a href="app?action=portfolio" style="font-size:0.8125rem;font-weight:600;margin-top:0.75rem;display:inline-block;">View Portfolio &rarr;</a>
+            </div>
+            <div class="dt-feature-card">
+                <span class="dt-feature-icon">&#9889;</span>
+                <h3>Java EE Benchmark</h3>
+                <p>Comprehensive performance workloads covering Servlets, JSPs, EJBs, JPA, JMS, MDBs, WebSockets, and 2-phase commit transactions.</p>
+                <a href="web_prmtv.html" style="font-size:0.8125rem;font-weight:600;margin-top:0.75rem;display:inline-block;">Run Primitives &rarr;</a>
             </div>
         </div>
 
-        <div class="dt-card">
+        <!-- Architecture -->
+        <div class="dt-card" style="margin-top:2rem;">
             <div class="dt-card-header">
-                <h2>Architecture</h2>
+                <h3>Architecture</h3>
+                <span class="dt-badge dt-badge-blue">Java EE 7 / MVC</span>
             </div>
-            <div class="dt-card-body" style="text-align:center;">
-                <img src="images/daytrader_simple_arch.gif" alt="DayTrader Architecture" style="max-width:100%;height:auto;border-radius:4px;">
-                <p style="margin-top:1rem;"><strong>DayTrader J2EE Components</strong><br>Model-View-Controller Architecture</p>
+            <div style="text-align:center;padding:1rem 0;">
+                <img src="images/daytrader_simple_arch.gif" alt="DayTrader Architecture" style="max-width:100%;height:auto;border-radius:6px;opacity:0.85;">
+                <p style="margin-top:0.75rem;font-size:0.8125rem;">Model-View-Controller architecture spanning the full Java EE stack</p>
+            </div>
+            <div class="dt-card-body" style="padding-top:0;">
+                <p style="font-size:0.875rem;">
+                    DayTrader is an end-to-end benchmark application providing real-world Java EE workloads.
+                    The <a href="web_prmtv.html">Primitives</a> test individual components — servlet engine, JSP, EJB Entity/Session/MDB, JPA, HTTP sessions, and more.
+                    Additional documentation in the <a href="docs/tradeFAQ.html">FAQ</a>.
+                </p>
             </div>
         </div>
 
-        <div class="dt-card">
-            <div class="dt-card-header">
-                <h2>DayTrader</h2>
-            </div>
-            <div class="dt-card-body">
-                <p>DayTrader is an end-to-end benchmark and performance sample application. It provides a real world Java EE workload.</p>
-                <p>DayTrader's design spans Java EE 7, including the new WebSockets specification. Other Java EE features include
-                    JSPs, Servlets, EJBs, JPA, JDBC, JSF, JMS, MDBs, and transactions (synchronous and asynchronous/2-phase commit).</p>
-
-                <h3>Primitives</h3>
-                <p>The <a href="web_prmtv.html">Primitives</a> provide a set of workloads to individually test various components
-                    of an Application Server. The primitives leverage the DayTrader application infrastructure to test specific
-                    Java EE components such as the servlet engine, JSP support, EJB Entity, Session and Message Driven beans,
-                    HTTP Session support and more.</p>
-                <p>Additional overview information is included in the <a href="docs/tradeFAQ.html">FAQ</a>.</p>
-            </div>
-        </div>
     </main>
 
     <footer class="dt-footer">
