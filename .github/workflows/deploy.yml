@@ -5,6 +5,10 @@ on:
     branches: [master]
   workflow_dispatch:
 
+concurrency:
+  group: deploy-aix
+  cancel-in-progress: true
+
 env:
   LIBERTY_HOME: /opt/IBM/WebSphere/Liberty
   MINIO_BUCKET: daytrader-artifacts
