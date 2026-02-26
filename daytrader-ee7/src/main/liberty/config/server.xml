@@ -94,9 +94,6 @@
 		<properties URL="jdbc:postgresql://${env.DB_HOST:10.0.100.104}:${env.DB_PORT:5432}/${env.DB_NAME:tradedb}"
 			user="${env.DB_USER:daytrader}" 
 			password="${env.DB_PASSWORD:daytrader-p8-2026}"/>
-        <enable-logging>
-            <log-statement level="ALL"/>
-        </enable-logging>
 	</dataSource>
 	<!-- ========================================================================== -->
 
