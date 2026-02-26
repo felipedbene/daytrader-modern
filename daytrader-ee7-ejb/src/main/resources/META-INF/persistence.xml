@@ -30,5 +30,11 @@
         <class>com.ibm.websphere.samples.daytrader.entities.QuoteDataBean</class>
         <exclude-unlisted-classes>true</exclude-unlisted-classes>
         <shared-cache-mode>NONE</shared-cache-mode>
+        <properties>
+            <!-- Prevent EclipseLink from dropping/recreating tables on restart.
+                 Tables are created on first startup; data persists across restarts. -->
+            <property name="eclipselink.ddl-generation" value="create-or-extend-tables"/>
+            <property name="eclipselink.ddl-generation.output-mode" value="database"/>
+        </properties>
     </persistence-unit>
 </persistence>

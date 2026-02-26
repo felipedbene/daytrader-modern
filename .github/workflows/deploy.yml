@@ -110,6 +110,15 @@ jobs:
           $SSH "curl -sf --max-time 600 'http://127.0.0.1:9080/daytrader/config?action=buildDB'" \
             && echo "  ✅ Test data seeded" || echo "  ⚠️ buildDB returned non-zero"
 
+          echo "🔍 Verifying quotes exist after seeding..."
+          QUOTE_CHECK=$($SSH "curl -sf --max-time 15 'http://127.0.0.1:9080/daytrader/api/quotes'" 2>/dev/null | head -c 200 || true)
+          if echo "$QUOTE_CHECK" | grep -q 'symbol'; then
+            echo "  ✅ Quotes verified in DB"
+          else
+            echo "  ⚠️ No quotes found — buildDB may have failed"
+            echo "  Response: $QUOTE_CHECK"
+          fi
+
           echo "👤 Registering Authentik user in DayTrader..."
           $SSH "curl -sf --max-time 30 'http://127.0.0.1:9080/daytrader/app' \
             --data-urlencode 'action=register' \
@@ -137,6 +146,15 @@ jobs:
             fi
             echo "  [$((i * 10))s] HTTP $code"
           done
+
+          echo "🔍 Verifying quotes persist after restart..."
+          QUOTE_CHECK=$($SSH "curl -sf --max-time 15 'http://127.0.0.1:9080/daytrader/api/quotes'" 2>/dev/null | head -c 200 || true)
+          if echo "$QUOTE_CHECK" | grep -q 'symbol'; then
+            echo "  ✅ Quotes still present after restart"
+          else
+            echo "  ❌ Quotes LOST after restart — EclipseLink may be dropping tables"
+            echo "  Response: $QUOTE_CHECK"
+          fi
 
           rm -f ~/.ssh/p8_deploy
 
