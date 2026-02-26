@@ -31,9 +31,10 @@
         <exclude-unlisted-classes>true</exclude-unlisted-classes>
         <shared-cache-mode>NONE</shared-cache-mode>
         <properties>
-            <!-- Prevent EclipseLink from dropping/recreating tables on restart.
-                 Tables are created on first startup; data persists across restarts. -->
-            <property name="eclipselink.ddl-generation" value="create-or-extend-tables"/>
+            <!-- create-tables: creates tables on first startup, skips if they already exist.
+                 Avoids PostgreSQL "current transaction is aborted" error that
+                 create-or-extend-tables causes when tables already exist. -->
+            <property name="eclipselink.ddl-generation" value="create-tables"/>
             <property name="eclipselink.ddl-generation.output-mode" value="database"/>
         </properties>
     </persistence-unit>
