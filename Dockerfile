@@ -24,7 +24,9 @@ RUN keytool -import -trustcacerts -keystore ${JAVA_HOME}/lib/security/cacerts \
     -storepass changeit -noprompt -alias homelab-ca -file /usr/local/share/ca-certificates/homelab-ca.crt
 
 # PostgreSQL JDBC driver
-COPY lib/postgresql-42.7.1.jar ${LIBERTY_HOME}/usr/shared/resources/postgresql/postgresql-42.7.1.jar
+RUN mkdir -p ${LIBERTY_HOME}/usr/shared/resources/postgresql \
+    && curl -sL https://jdbc.postgresql.org/download/postgresql-42.7.1.jar \
+    -o ${LIBERTY_HOME}/usr/shared/resources/postgresql/postgresql-42.7.1.jar
 
 # Server config
 COPY daytrader-ee7/src/main/liberty/config/server.xml ${LIBERTY_HOME}/usr/servers/defaultServer/server.xml
