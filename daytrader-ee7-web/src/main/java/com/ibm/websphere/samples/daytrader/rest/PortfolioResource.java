@@ -15,6 +15,7 @@
  */
 package com.ibm.websphere.samples.daytrader.rest;
 
+import java.security.Principal;
 import java.util.Collection;
 
 import javax.inject.Inject;
@@ -22,8 +23,10 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 
 import com.ibm.websphere.samples.daytrader.TradeAction;
 import com.ibm.websphere.samples.daytrader.entities.HoldingDataBean;
@@ -38,9 +41,13 @@ public class PortfolioResource {
     @Inject
     private TradeAction tradeAction;
 
+    @Context
+    private SecurityContext securityContext;
+
     /**
      * Get all holdings (portfolio) for a specific user.
-     * 
+     * Requires the authenticated OIDC principal to match the requested userId.
+     *
      * @param userId the user ID
      * @return JSON array of holdings
      */
@@ -48,6 +55,12 @@ public class PortfolioResource {
     @Path("/{userId}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getPortfolio(@PathParam("userId") String userId) {
+        Principal principal = securityContext.getUserPrincipal();
+        if (principal == null || !principal.getName().equals(userId)) {
+            return Response.status(Response.Status.FORBIDDEN)
+                    .entity(new ErrorResponse("Access denied", "You can only access your own portfolio"))
+                    .build();
+        }
         try {
             Collection<?> holdings = tradeAction.getHoldings(userId);
             if (holdings == null || holdings.isEmpty()) {

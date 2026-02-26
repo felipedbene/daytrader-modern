@@ -118,12 +118,12 @@
         <lookup-name>java:/jms/TradeStreamerTopic</lookup-name>
     </message-destination-ref>
 
-    <!-- Only protect REST API with OIDC auth -->
+    <!-- Protect entire app with OIDC (web UI + REST API) -->
     <security-constraint>
-        <display-name>REST API Protection</display-name>
+        <display-name>Full App OIDC Protection</display-name>
         <web-resource-collection>
-            <web-resource-name>REST API</web-resource-name>
-            <url-pattern>/api/*</url-pattern>
+            <web-resource-name>All Resources</web-resource-name>
+            <url-pattern>/*</url-pattern>
         </web-resource-collection>
         <auth-constraint>
             <role-name>AllAuthenticated</role-name>

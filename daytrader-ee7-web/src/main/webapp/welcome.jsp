@@ -1,3 +1,11 @@
+<%-- Redirect already-authenticated OIDC users straight to home --%>
+<%
+javax.servlet.http.HttpSession _s = request.getSession(false);
+if (_s != null && _s.getAttribute("uidBean") != null) {
+    response.sendRedirect(request.getContextPath() + "/app?action=home");
+    return;
+}
+%>
 <!DOCTYPE html>
 <%@ page session="false"%>
 <html lang="en">

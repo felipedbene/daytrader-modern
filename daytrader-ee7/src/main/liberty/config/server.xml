@@ -31,9 +31,9 @@
     <!-- Default SSL/TLS config (required for OIDC client) -->
     <keyStore id="defaultKeyStore" password="liberty-ks-2026"/>
 
-    <!-- Auth filter: only protect /api/* with OIDC -->
-    <authFilter id="apiAuthFilter">
-        <requestUrl urlPattern="/daytrader/api" matchType="contains"/>
+    <!-- Auth filter: protect entire /daytrader app with OIDC -->
+    <authFilter id="appAuthFilter">
+        <requestUrl urlPattern="/daytrader" matchType="contains"/>
     </authFilter>
 
     <!-- OIDC Configuration - Authentik -->
@@ -48,7 +48,7 @@
         userIdentityToCreateSubject="preferred_username"
         httpsRequired="false"
         disableLtpaCookie="false"
-        authFilterRef="apiAuthFilter"
+        authFilterRef="appAuthFilter"
     />
 
     <!-- Security role mapping -->
