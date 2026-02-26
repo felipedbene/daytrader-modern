@@ -87,7 +87,15 @@ jobs:
 
           LIBERTY="/opt/IBM/WebSphere/wlp"
           JAVA="export JAVA_HOME=/usr/java8_64 &&"
-          APP_URL="http://localhost:9082/daytrader"
+
+          # Auto-detect Liberty's actual HTTP port from the server.xml on AIX
+          # (the AIX install may differ from the repo's server.xml)
+          APP_PORT=$($SSH "grep -o 'httpPort=\"[0-9]*\"' \
+            $LIBERTY/usr/servers/defaultServer/server.xml 2>/dev/null \
+            | grep -o '[0-9]*'" 2>/dev/null || true)
+          APP_PORT=${APP_PORT:-9082}
+          echo "🔍 Liberty HTTP port: $APP_PORT"
+          APP_URL="http://localhost:${APP_PORT}/daytrader"
 
           # helper: poll Liberty until HTTP 200 or timeout (arg1 = label)
           wait_for_liberty() {
