@@ -7,10 +7,6 @@
     <variable name="DB_NAME" defaultValue="tradedb"/>
     <variable name="DB_USER" defaultValue="daytrader"/>
     <variable name="DB_PASSWORD" defaultValue=""/>
-    <variable name="OIDC_CLIENT_ID" defaultValue="daytrader"/>
-    <variable name="OIDC_CLIENT_SECRET" defaultValue=""/>
-    <variable name="OIDC_DISCOVERY_URL" defaultValue="https://auth.k8s.debene.name/application/o/daytrader/.well-known/openid-configuration"/>
-    <variable name="OIDC_REDIRECT_HOST" defaultValue="https://aix.debene.dev"/>
 
     <featureManager>
         <feature>ejb-3.2</feature>
@@ -31,57 +27,21 @@
         <feature>jsonb-1.0</feature>
         <!-- JDBC feature for PostgreSQL -->
         <feature>jdbc-4.2</feature>
-        <!-- OIDC features -->
-        <feature>openidConnectClient-1.0</feature>
-        <feature>transportSecurity-1.0</feature>
-        <feature>appSecurity-3.0</feature>
     </featureManager>
 
     <authData id="TradeAdminAuthData" user="admin" password="changeit"/>
 
-    <!-- Default SSL/TLS config (required for OIDC client) -->
-    <keyStore id="defaultKeyStore" password="liberty-ks-2026"/>
-    <keyStore id="defaultTrustStore" location="${env.JAVA_HOME}/lib/security/cacerts" password="changeit" type="PKCS12"/>
-    <ssl id="defaultSSLConfig" keyStoreRef="defaultKeyStore" trustStoreRef="defaultTrustStore"/>
-
-    <!-- Auth filter: protect entire /daytrader app with OIDC -->
-    <authFilter id="appAuthFilter">
-        <requestUrl urlPattern="/daytrader" matchType="contains"/>
-    </authFilter>
-
-    <!-- OIDC Configuration - Authentik -->
-    <openidConnectClient id="authentikOIDC"
-        clientId="${OIDC_CLIENT_ID}"
-        clientSecret="${OIDC_CLIENT_SECRET}"
-        discoveryEndpointUrl="${OIDC_DISCOVERY_URL}"
-        signatureAlgorithm="RS256"
-        scope="openid profile email"
-        redirectToRPHostAndPort="${OIDC_REDIRECT_HOST}"
-        mapIdentityToRegistryUser="true"
-        userIdentityToCreateSubject="preferred_username"
-        httpsRequired="false"
-        disableLtpaCookie="false"
-        authFilterRef="appAuthFilter"
-    />
-
-    <!-- Security role mapping -->
-    <application-bnd>
-        <security-role name="AllAuthenticated">
-            <special-subject type="ALL_AUTHENTICATED_USERS"/>
-        </security-role>
-    </application-bnd>
-
-	<!-- allow reuse of 'busy' ports for fast server recycling on linux (where ports remain blocked for up to 2 mins after server stops) ${tradelite.http.port} set in bootstrap.properties --> 
-	<httpEndpoint host="*" httpPort="9080" httpsPort="9443" id="defaultHttpEndpoint"> 
-		<tcpOptions soReuseAddr="true"/> 
+	<!-- allow reuse of 'busy' ports for fast server recycling on linux (where ports remain blocked for up to 2 mins after server stops) ${tradelite.http.port} set in bootstrap.properties -->
+	<httpEndpoint host="*" httpPort="9080" httpsPort="9443" id="defaultHttpEndpoint">
+		<tcpOptions soReuseAddr="true"/>
 		<httpOptions maxKeepAliveRequests="-1"/>
 	</httpEndpoint>
 
 	<iiopEndpoint id="defaultIiopEndpoint" iiopPort="2809" iiopsPort="2810"/>
-	
+
 	<application id="daytrader7" location="daytrader-ee7.ear" name="daytrader7"/>
 
-	<connectionManager agedTimeout="-1" connectionTimeout="0" id="conMgr1" maxIdleTime="-1" maxPoolSize="100" minPoolSize="100" purgePolicy="FailingConnectionOnly" reapTime="-1"/> 
+	<connectionManager agedTimeout="-1" connectionTimeout="0" id="conMgr1" maxIdleTime="-1" maxPoolSize="100" minPoolSize="100" purgePolicy="FailingConnectionOnly" reapTime="-1"/>
 
 	<!-- ========================= DATABASE CONFIGURATION ========================= -->
 	<!-- Switch between Derby (local dev) and PostgreSQL (AIX production) -->
@@ -93,8 +53,8 @@
 	<library filesetRef="DerbyFileset" id="DerbyLib"/>
 	<fileset dir="${shared.resource.dir}/DerbyLibs" id="DerbyFileset" includes="derby-10.14.2.0.jar"/>
 
-	<dataSource connectionManagerRef="conMgr1" id="DerbyDataSource" isolationLevel="TRANSACTION_READ_COMMITTED" jdbcDriverRef="DerbyEmbedded" jndiName="jdbc/TradeDataSource" statementCacheSize="60"> 
-		<properties.derby.embedded createDatabase="create" databaseName="${shared.resource.dir}/data/tradedb" password="db_password" user="db_username"/> 
+	<dataSource connectionManagerRef="conMgr1" id="DerbyDataSource" isolationLevel="TRANSACTION_READ_COMMITTED" jdbcDriverRef="DerbyEmbedded" jndiName="jdbc/TradeDataSource" statementCacheSize="60">
+		<properties.derby.embedded createDatabase="create" databaseName="${shared.resource.dir}/data/tradedb" password="db_password" user="db_username"/>
 	</dataSource>
 	-->
 
@@ -103,7 +63,7 @@
 	<library id="postgresLib">
 		<fileset dir="${shared.resource.dir}/postgresql" includes="*.jar"/>
 	</library>
-	
+
 	<dataSource connectionManagerRef="conMgr1" id="PostgresDataSource" isolationLevel="TRANSACTION_READ_COMMITTED" jndiName="jdbc/TradeDataSource" statementCacheSize="60">
 		<jdbcDriver libraryRef="postgresLib"/>
 		<properties.postgresql
@@ -120,9 +80,9 @@
 		<topicSpace id="TradeTopicSpace"/>
 	</messagingEngine>
 
-	<jmsQueueConnectionFactory connectionManagerRef="ConMgr3" jndiName="jms/TradeBrokerQCF">  
+	<jmsQueueConnectionFactory connectionManagerRef="ConMgr3" jndiName="jms/TradeBrokerQCF">
 		<properties.wasJms/>
-	</jmsQueueConnectionFactory> 
+	</jmsQueueConnectionFactory>
 	<connectionManager id="ConMgr3" maxPoolSize="20"/>
 
 	<jmsTopicConnectionFactory connectionManagerRef="ConMgr4" jndiName="jms/TradeStreamerTCF">

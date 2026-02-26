@@ -62,7 +62,6 @@ jobs:
         env:
           DEPLOY_KEY: ${{ secrets.AIX_DEPLOY_KEY }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          OIDC_CLIENT_SECRET: ${{ secrets.OIDC_CLIENT_SECRET }}
         run: |
           set +e
           mkdir -p ~/.ssh
@@ -81,7 +80,7 @@ jobs:
           $SSH "cd $DEPLOY_DIR && docker compose build --no-cache 2>&1 | tail -5"
 
           # ── Write .env file for docker compose (secrets never touch CLI args) ──
-          $SSH "printf 'DB_PASSWORD=%s\nOIDC_CLIENT_SECRET=%s\n' '${DB_PASSWORD}' '${OIDC_CLIENT_SECRET}' > $DEPLOY_DIR/.env && chmod 600 $DEPLOY_DIR/.env"
+          $SSH "printf 'DB_PASSWORD=%s\n' '${DB_PASSWORD}' > $DEPLOY_DIR/.env && chmod 600 $DEPLOY_DIR/.env"
 
           echo "🔄 Restarting container..."
           $SSH "cd $DEPLOY_DIR && docker compose down && docker compose up -d 2>&1"
@@ -91,7 +90,7 @@ jobs:
             sleep 10
             code=$($SSH "curl -s -o /dev/null -w '%{http_code}' --max-time 5 http://127.0.0.1:9080/daytrader/" 2>/dev/null || true)
             code=${code:-000}
-            if [ "$code" = "200" ] || [ "$code" = "302" ] || [ "$code" = "401" ]; then
+            if [ "$code" = "200" ] || [ "$code" = "302" ]; then
               echo "✅ DayTrader up after $((i * 10))s (HTTP $code)"
               break
             fi
