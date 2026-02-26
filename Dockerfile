@@ -42,4 +42,5 @@ EXPOSE 9080 9443
 
 ENV PATH=${LIBERTY_HOME}/bin:${JAVA_HOME}/bin:${PATH}
 
-CMD ["server", "run", "defaultServer"]
+# CMD ["server", "run", "defaultServer"]
+CMD ["tail", "-f", "/dev/null"]

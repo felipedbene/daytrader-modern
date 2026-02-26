@@ -156,6 +156,7 @@
         <lookup-name>java:/jms/TradeStreamerTopic</lookup-name>
     </message-destination-ref>
 
+    -->
     <!-- Only protect REST API with OIDC auth -->
     <security-constraint>
         <display-name>REST API Protection</display-name>
