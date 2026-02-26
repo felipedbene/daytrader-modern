@@ -1,4 +1,6 @@
-<server>
+<?xml version="1.0" encoding="UTF-8"?>
+<server description="Sample Server">
+
     <featureManager>
         <feature>ejb-3.2</feature>
         <feature>servlet-4.0</feature>
