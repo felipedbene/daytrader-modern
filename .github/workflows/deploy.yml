@@ -1,4 +1,4 @@
-name: Build & Deploy DayTrader to AIX
+name: Build & Deploy DayTrader to P8 Gentoo
 
 on:
   push:
@@ -6,41 +6,18 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: deploy-aix
+  group: deploy-p8
   cancel-in-progress: true
 
 env:
-  LIBERTY_HOME: /opt/IBM/WebSphere/Liberty
-  MINIO_BUCKET: daytrader-artifacts
-  MINIO_ENDPOINT: https://minio-api.k8s.debene.name
+  P8_HOST: ${{ secrets.AIX_HOST }}
+  DEPLOY_DIR: /home/felipe/daytrader-modern
 
 jobs:
   build:
     runs-on: [self-hosted, homelab]
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install homelab CA + tools
-        env:
-          HOMELAB_CA_CERT: ${{ secrets.HOMELAB_CA_CERT }}
-        run: |
-          # Install homelab CA cert from secret
-          echo "$HOMELAB_CA_CERT" > /usr/local/share/ca-certificates/homelab-ca.crt
-          update-ca-certificates
-
-          # Install Maven if not present
-          if ! command -v mvn &>/dev/null; then
-            curl -sL https://archive.apache.org/dist/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz | tar xz -C /opt
-            ln -sf /opt/apache-maven-3.9.6/bin/mvn /usr/local/bin/mvn
-          fi
-
-          # Install MinIO client if not present
-          if ! command -v mc &>/dev/null; then
-            curl -sL https://dl.min.io/client/mc/release/linux-amd64/mc -o /usr/local/bin/mc
-            chmod +x /usr/local/bin/mc
-          fi
-
-          mc --version
 
       - name: Set up JDK 11
         uses: actions/setup-java@v4
@@ -52,63 +29,68 @@ jobs:
       - name: Build with Maven
         run: mvn clean package -DskipTests
 
-      - name: Upload EAR to MinIO
-        env:
-          MINIO_ACCESS_KEY: ${{ secrets.MINIO_ACCESS_KEY }}
-          MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
-        run: |
-          mc alias set homelab "$MINIO_ENDPOINT" "$MINIO_ACCESS_KEY" "$MINIO_SECRET_KEY"
-          mc mb --ignore-existing homelab/$MINIO_BUCKET
-
-          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
-          WAR_FILE=$(ls daytrader-ee7-web/target/*.war | head -1)
-          EAR_FILE=$(ls daytrader-ee7/target/*.ear | head -1)
-
-          mc cp "$WAR_FILE" "homelab/$MINIO_BUCKET/daytrader-${TIMESTAMP}.war"
-          mc cp "$WAR_FILE" "homelab/$MINIO_BUCKET/daytrader-latest.war"
-          if [ -n "$EAR_FILE" ]; then
-            mc cp "$EAR_FILE" "homelab/$MINIO_BUCKET/daytrader-${TIMESTAMP}.ear"
-            mc cp "$EAR_FILE" "homelab/$MINIO_BUCKET/daytrader-latest.ear"
-          fi
-
-          echo "✅ Uploaded to MinIO: daytrader-${TIMESTAMP}.ear"
-          
-          # Upload PostgreSQL JDBC driver if not already present
-          if ! mc stat "homelab/$MINIO_BUCKET/postgresql-42.7.1.jar" >/dev/null 2>&1; then
-            echo "📦 Downloading PostgreSQL JDBC driver..."
-            curl -sL https://jdbc.postgresql.org/download/postgresql-42.7.1.jar -o /tmp/postgresql-42.7.1.jar
-            mc cp /tmp/postgresql-42.7.1.jar "homelab/$MINIO_BUCKET/postgresql-42.7.1.jar"
-            echo "✅ PostgreSQL JDBC driver uploaded to MinIO"
-          else
-            echo "✅ PostgreSQL JDBC driver already in MinIO"
-          fi
-
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          name: daytrader-ear
+          path: |
+            daytrader-ee7/target/daytrader-ee7.ear
+            daytrader-ee7-web/target/*.war
 
-      - name: Build and push Docker image
+  deploy:
+    needs: build
+    runs-on: [self-hosted, homelab]
+    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/master'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: daytrader-ear
+          path: .
+
+      - name: Deploy to P8 Gentoo (Docker)
+        env:
+          DEPLOY_KEY: ${{ secrets.AIX_DEPLOY_KEY }}
         run: |
-          # Check if Docker daemon is available (self-hosted runners may not have it)
-          if ! docker info >/dev/null 2>&1; then
-            echo "⚠️  Docker daemon not available on this runner — skipping Docker build"
-            echo "   To enable Docker builds, ensure Docker is installed and the runner user"
-            echo "   is in the 'docker' group: sudo usermod -aG docker \$USER"
-            exit 0
+          set +e
+          mkdir -p ~/.ssh
+          echo "$DEPLOY_KEY" > ~/.ssh/p8_deploy
+          chmod 600 ~/.ssh/p8_deploy
+          SSH="ssh -o StrictHostKeyChecking=no -o ServerAliveInterval=60 -i ~/.ssh/p8_deploy felipe@$P8_HOST"
+          SCP="scp -o StrictHostKeyChecking=no -i ~/.ssh/p8_deploy"
+
+          echo "📦 Syncing source to P8..."
+          # Sync EAR and Dockerfile
+          $SCP daytrader-ee7/target/daytrader-ee7.ear felipe@$P8_HOST:$DEPLOY_DIR/daytrader-ee7/target/daytrader-ee7.ear
+          $SCP Dockerfile felipe@$P8_HOST:$DEPLOY_DIR/Dockerfile
+          $SCP daytrader-ee7/src/main/liberty/config/server.xml felipe@$P8_HOST:$DEPLOY_DIR/daytrader-ee7/src/main/liberty/config/server.xml
+
+          echo "🐳 Rebuilding Docker image on P8..."
+          $SSH "cd $DEPLOY_DIR && docker compose build --no-cache 2>&1 | tail -5"
+
+          echo "🔄 Restarting container..."
+          $SSH "cd $DEPLOY_DIR && docker compose down && docker compose up -d 2>&1"
+
+          echo "⏳ Waiting for Liberty to start..."
+          for i in $(seq 1 24); do
+            sleep 10
+            code=$($SSH "curl -s -o /dev/null -w '%{http_code}' --max-time 5 http://127.0.0.1:9080/daytrader/" 2>/dev/null || true)
+            code=${code:-000}
+            if [ "$code" = "200" ] || [ "$code" = "302" ]; then
+              echo "✅ DayTrader up after $((i * 10))s (HTTP $code)"
+              break
+            fi
+            echo "  [$((i * 10))s] HTTP $code"
+          done
+
+          if [ "$code" != "200" ] && [ "$code" != "302" ]; then
+            echo "⚠️  Liberty not responding — checking logs..."
+            $SSH "cd $DEPLOY_DIR && docker compose logs --tail=30" 2>/dev/null || true
           fi
 
-          IMAGE_TAG=ghcr.io/felipedbene/daytrader-modern:latest
-          IMAGE_TAG_SHA=ghcr.io/felipedbene/daytrader-modern:${{ github.sha }}
-
-          docker build -t "$IMAGE_TAG" -t "$IMAGE_TAG_SHA" .
-          docker push "$IMAGE_TAG"
-          docker push "$IMAGE_TAG_SHA"
-
-          echo "✅ Docker image pushed: $IMAGE_TAG"
-          echo "✅ Docker image pushed: $IMAGE_TAG_SHA"
+          rm -f ~/.ssh/p8_deploy
 
   notify:
     needs: [build, deploy]
@@ -118,159 +100,16 @@ jobs:
       - name: Discord notification
         run: |
           if [ "${{ needs.deploy.result }}" = "success" ]; then
-            COLOR=3066993; TITLE="✅ DayTrader Deploy Success"
+            COLOR=3066993; TITLE="✅ DayTrader Deploy to P8 Success"
           elif [ "${{ needs.build.result }}" = "failure" ]; then
             COLOR=15158332; TITLE="❌ DayTrader Build Failed"
           elif [ "${{ needs.deploy.result }}" = "failure" ]; then
-            COLOR=15158332; TITLE="❌ DayTrader Deploy Failed"
+            COLOR=15158332; TITLE="❌ DayTrader Deploy to P8 Failed"
           elif [ "${{ needs.deploy.result }}" = "skipped" ]; then
             COLOR=16776960; TITLE="⏭️ DayTrader Deploy Skipped"
           else
             COLOR=8421504; TITLE="⚠️ DayTrader Pipeline: ${{ needs.deploy.result }}"
           fi
           curl -s -H "Content-Type: application/json" \
-            -d "{\"embeds\":[{\"title\":\"$TITLE\",\"description\":\"Commit: \`${GITHUB_SHA::7}\`\nBranch: \`$GITHUB_REF_NAME\`\nBy: $GITHUB_ACTOR\",\"color\":$COLOR,\"url\":\"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID\"}]}" \
+            -d "{\"embeds\":[{\"title\":\"$TITLE\",\"description\":\"Commit: \`${GITHUB_SHA::7}\`\nBranch: \`$GITHUB_REF_NAME\`\nBy: $GITHUB_ACTOR\nTarget: P8 Gentoo (Docker)\",\"color\":$COLOR,\"url\":\"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID\"}]}" \
             "${{ secrets.DISCORD_WEBHOOK_URL }}"
-
-  deploy:
-    needs: build
-    runs-on: [self-hosted, homelab]
-    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/master'
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Deploy EAR to AIX
-        env:
-          AIX_HOST: ${{ secrets.AIX_HOST }}
-          AIX_DEPLOY_KEY: ${{ secrets.AIX_DEPLOY_KEY }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-        run: |
-          set +e  # handle errors manually — curl/ssh failures must not kill the script
-          mkdir -p ~/.ssh
-          echo "$AIX_DEPLOY_KEY" > ~/.ssh/aix_deploy
-          chmod 600 ~/.ssh/aix_deploy
-          SSH="ssh -o StrictHostKeyChecking=no -o ServerAliveInterval=60 -i ~/.ssh/aix_deploy root@$AIX_HOST"
-
-          LIBERTY="/opt/IBM/WebSphere/wlp"
-          JAVA="export JAVA_HOME=/usr/java8_64 &&"
-
-          # Port matches server.xml (deployed from repo — always 9080)
-          APP_PORT=9080
-          APP_URL="http://127.0.0.1:${APP_PORT}/daytrader"
-          echo "🔍 Liberty HTTP port: $APP_PORT"
-
-          # helper: poll Liberty until HTTP 200 or timeout (arg1 = label)
-          wait_for_liberty() {
-            local label="$1"
-            echo "⏳ Waiting for Liberty to be ready ($label)..."
-            for i in $(seq 1 36); do
-              sleep 10
-              # Use 127.0.0.1 to avoid IPv6/IPv4 ambiguity on AIX
-              http_code=$($SSH "curl -s -o /dev/null -w '%{http_code}' --max-time 5 http://127.0.0.1:${APP_PORT}/daytrader/" 2>/dev/null || true)
-              http_code=${http_code:-000}
-              if [ "$http_code" = "200" ]; then
-                echo "✅ Liberty up after $((i * 10))s"
-                return 0
-              fi
-              echo "  [$((i * 10))s] HTTP $http_code"
-            done
-            echo "⚠️  Liberty did not respond after 360s — dumping diagnostics..."
-            echo "=== Liberty server status ==="
-            $SSH "$JAVA $LIBERTY/bin/server status defaultServer 2>&1" 2>/dev/null || true
-            echo "=== Listening ports (9080/9082) ==="
-            $SSH "netstat -an 2>/dev/null | grep LISTEN | grep -E '9080|9082'" 2>/dev/null || true
-            echo "=== Liberty log (last 50 lines) ==="
-            $SSH "tail -50 $LIBERTY/usr/servers/defaultServer/logs/messages.log 2>/dev/null" 2>/dev/null || true
-            return 0
-          }
-
-          # ── 1. Stop Liberty ─────────────────────────────────────────────────
-          echo "⏹️  Stopping Liberty..."
-          $SSH "$JAVA $LIBERTY/bin/server stop defaultServer 2>/dev/null" || true
-
-          # ── 2. Install Liberty features (OIDC etc.) if missing ───────────────
-          echo "🔧 Installing Liberty features..."
-          $SSH "$JAVA $LIBERTY/bin/featureUtility installServerFeatures --acceptLicense defaultServer 2>&1 | tail -5" 2>/dev/null || true
-
-          # ── 3. Deploy PG JDBC driver ─────────────────────────────────────
-          echo "📦 Installing PostgreSQL JDBC driver..."
-          $SSH "mkdir -p $LIBERTY/usr/shared/resources/postgresql && \
-            curl -s --max-time 60 http://10.0.2.81:9000/daytrader-artifacts/postgresql-42.7.1.jar \
-            -o $LIBERTY/usr/shared/resources/postgresql/postgresql-42.7.1.jar"
-
-          # ── 4. Deploy server.xml from repo ──────────────────────────────────
-          echo "📦 Deploying server.xml..."
-          $SSH "cat > $LIBERTY/usr/servers/defaultServer/server.xml" < daytrader-ee7/src/main/liberty/config/server.xml
-
-          # ── 5. Write server.env (override DB password if GitHub secret is set)
-          if [ -n "$DB_PASSWORD" ]; then
-            echo "📝 Writing DB_PASSWORD to server.env..."
-            printf 'DB_PASSWORD=%s\n' "$DB_PASSWORD" \
-              | $SSH "cat > $LIBERTY/usr/servers/defaultServer/server.env && chmod 600 $LIBERTY/usr/servers/defaultServer/server.env"
-          fi
-
-          # ── 6. Deploy latest EAR (use HTTP — AIX curl lacks homelab CA) ────
-          echo "📦 Deploying EAR..."
-          $SSH "curl -s --max-time 120 http://10.0.2.81:9000/daytrader-artifacts/daytrader-latest.ear \
-            -o $LIBERTY/usr/servers/defaultServer/apps/daytrader-ee7.ear"
-
-          # ── 7. Start Liberty ────────────────────────────────────────────────
-          echo "▶️  Starting Liberty..."
-          $SSH "$JAVA $LIBERTY/bin/server start defaultServer"
-
-          # ── 8. Wait for app to respond ──────────────────────────────────────
-          wait_for_liberty "initial start"
-
-          # Extra grace period for DataSource connection pool to stabilise
-          echo "⏳ Waiting 30s for DataSource pool..."
-          sleep 30
-
-          # ── 5. Create DB tables (retry — TradeDirect init is timing-sensitive)
-          echo "🛠️  Creating DB tables..."
-          TABLES_OK=false
-          for i in $(seq 1 6); do
-            result=$($SSH "curl -s --max-time 120 '${APP_URL}/config?action=buildDBTables'" 2>/dev/null || true)
-            if echo "$result" | grep -q "successfully created"; then
-              echo "✅ Tables created on attempt $i"
-              TABLES_OK=true
-              break
-            fi
-            echo "  Attempt $i: not ready yet (retrying in 15s)..."
-            echo "  Response snippet: $(echo "$result" | grep -o 'TradeBuildDB[^<]*' | head -3)"
-            sleep 15
-          done
-
-          if [ "$TABLES_OK" != "true" ]; then
-            echo "❌ buildDBTables failed after all retries — aborting"
-            rm -f ~/.ssh/aix_deploy
-            exit 1
-          fi
-
-          # ── 6. Restart Liberty for clean EJB/JPA state after DDL ──────────
-          echo "🔄 Restarting Liberty for clean EJB/JPA state..."
-          $SSH "$JAVA $LIBERTY/bin/server stop defaultServer"
-          $SSH "$JAVA $LIBERTY/bin/server start defaultServer"
-
-          # ── 7. Wait for Liberty to be ready again ──────────────────────────
-          wait_for_liberty "post-DDL restart"
-
-          # Extra grace period before populating
-          echo "⏳ Waiting 30s for DataSource pool..."
-          sleep 30
-
-          # ── 8. Populate DB (10 000 quotes + 15 000 users — takes ~10 min) ──
-          echo "📊 Populating database (this takes several minutes)..."
-          $SSH "curl -s --max-time 1200 '${APP_URL}/config?action=buildDB' -o /dev/null" || true
-          echo "✅ Database populated"
-
-          # ── 9. Health check ─────────────────────────────────────────────────
-          sleep 20
-          code=$($SSH "curl -s -o /dev/null -w '%{http_code}' --max-time 10 ${APP_URL}/" 2>/dev/null || true)
-          code=${code:-000}
-          if [ "$code" = "200" ]; then
-            echo "✅ Deployed and healthy!"
-          else
-            echo "⚠️  Health check returned HTTP $code"
-          fi
-
-          rm -f ~/.ssh/aix_deploy
