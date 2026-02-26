@@ -123,6 +123,21 @@ jobs:
             --data-urlencode 'snail mail=nowhere'" \
             && echo "  ✅ User 'felipe' registered" || echo "  ⚠️ Registration returned non-zero (user may already exist)"
 
+          # Restart Liberty so MarketSummarySingleton initializes with populated DB.
+          # The @Singleton EJB fails permanently if it starts before quotes exist.
+          echo "🔄 Restarting container (MarketSummarySingleton needs populated DB at startup)..."
+          $SSH "cd $DEPLOY_DIR && docker compose restart 2>&1"
+          for i in $(seq 1 24); do
+            sleep 10
+            code=$($SSH "curl -s -o /dev/null -w '%{http_code}' --max-time 5 http://127.0.0.1:9080/daytrader/" 2>/dev/null || true)
+            code=${code:-000}
+            if [ "$code" = "200" ] || [ "$code" = "302" ]; then
+              echo "✅ DayTrader back up after $((i * 10))s (HTTP $code)"
+              break
+            fi
+            echo "  [$((i * 10))s] HTTP $code"
+          done
+
           rm -f ~/.ssh/p8_deploy
 
   notify:
