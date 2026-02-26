@@ -110,6 +110,19 @@ jobs:
           $SSH "curl -sf --max-time 300 'http://127.0.0.1:9080/daytrader/config?action=buildDB'" \
             && echo "  ✅ Test data seeded" || echo "  ⚠️ buildDB returned non-zero"
 
+          echo "👤 Registering Authentik user in DayTrader..."
+          $SSH "curl -sf --max-time 30 'http://127.0.0.1:9080/daytrader/app' \
+            --data-urlencode 'action=register' \
+            --data-urlencode 'user id=felipe' \
+            --data-urlencode 'passwd=xxx' \
+            --data-urlencode 'confirm passwd=xxx' \
+            --data-urlencode 'Full Name=Felipe Debene' \
+            --data-urlencode 'Credit Card Number=0000-0000-0000-0000' \
+            --data-urlencode 'money=100000' \
+            --data-urlencode 'email=felipe@debene.dev' \
+            --data-urlencode 'snail mail=nowhere'" \
+            && echo "  ✅ User 'felipe' registered" || echo "  ⚠️ Registration returned non-zero (user may already exist)"
+
           rm -f ~/.ssh/p8_deploy
 
   notify:
