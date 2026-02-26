@@ -244,3 +244,17 @@ jobs:
           fi
 
           rm -f ~/.ssh/aix_deploy
+
+      - name: Notify Discord (success)
+        if: success()
+        run: |
+          curl -s -H "Content-Type: application/json" \
+            -d "{\"embeds\":[{\"title\":\"✅ DayTrader Deploy Success\",\"description\":\"Commit: \`${GITHUB_SHA::7}\`\nBranch: \`$GITHUB_REF_NAME\`\nBy: $GITHUB_ACTOR\",\"color\":3066993,\"url\":\"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID\"}]}" \
+            "${{ secrets.DISCORD_WEBHOOK_URL }}"
+
+      - name: Notify Discord (failure)
+        if: failure()
+        run: |
+          curl -s -H "Content-Type: application/json" \
+            -d "{\"embeds\":[{\"title\":\"❌ DayTrader Deploy Failed\",\"description\":\"Commit: \`${GITHUB_SHA::7}\`\nBranch: \`$GITHUB_REF_NAME\`\nBy: $GITHUB_ACTOR\",\"color\":15158332,\"url\":\"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID\"}]}" \
+            "${{ secrets.DISCORD_WEBHOOK_URL }}"
