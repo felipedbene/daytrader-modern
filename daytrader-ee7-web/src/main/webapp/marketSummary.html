@@ -13,14 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 -->
-<html>
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>Market Summary</title>
-<script src="https://ajax.googleapis.com/ajax/libs/dojo/1.7.12/dojo/dojo.js"></script>
-<link rel="stylesheet" href="style.css">
-<link rel="shortcut icon" href="./favicon.ico" />
-
 <style>
     .ms-status {
         display: inline-flex; align-items: center; gap: 0.375rem;
@@ -32,6 +24,7 @@
         width: 6px; height: 6px; border-radius: 50%; background: currentColor;
         animation: ms-live 2s ease-in-out infinite;
     }
+    .ms-status.disconnected { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.2); color: #ef4444; }
     @keyframes ms-live { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
     .ms-btn {
         padding: 0.3rem 0.75rem; border-radius: 6px; border: 1px solid #1e2d45;
@@ -42,64 +35,15 @@
     .ms-btn:hover { background: #161d2e; color: #e8edf5; border-color: #253555; }
 </style>
 
-<script>
-    require(["dojo/dom", "dojo/on", "dojo/domReady!"], function(dom, on){
-        var websocket, url, int;
-        url = ((window.location.protocol === "https:") ? "wss://" : "ws://") + window.location.host + "/daytrader/marketsummary";
-
-        function connect() {
-            websocket = new WebSocket(url);
-            websocket.onopen = function(evt) { onOpen(evt); };
-            websocket.onmessage = function(evt) { onMessage(evt); };
-            websocket.onerror = function(evt) { websocket.close(); };
-            websocket.onclose = function(evt) { int = window.clearInterval(int); };
-        }
-        connect();
-
-        on(dom.byId("connect"), "click", function(){ connect(); });
-        on(dom.byId("disconnect"), "click", function(){ websocket.close(); });
-
-        function onOpen(msg) { int = self.setInterval(function(){ update(); }, 5000); update(); }
-
-        function setArrow(id, arrowId) {
-            var el = dom.byId(id); if (!el) return;
-            var v = parseFloat(el.innerHTML);
-            var arrow = dom.byId(arrowId);
-            if (v >= 0) {
-                el.style.color = "#22c55e";
-                if (arrow) { arrow.textContent = "\u25b2"; arrow.style.color = "#22c55e"; }
-            } else {
-                el.style.color = "#ef4444";
-                if (arrow) { arrow.textContent = "\u25bc"; arrow.style.color = "#ef4444"; }
-            }
-        }
-
-        function onMessage(msg) {
-            var data = JSON.parse(msg.data);
-            for (var k in data) { var el = dom.byId(k); if (el) el.innerHTML = data[k]; }
-            if (data.hasOwnProperty('tsia'))           setArrow("tsia", "tsia-arrow");
-            if (data.hasOwnProperty('change1_change')) setArrow("change1_change", "arrow_c1");
-            if (data.hasOwnProperty('change2_change')) setArrow("change2_change", "arrow_c2");
-            if (data.hasOwnProperty('change3_change')) setArrow("change3_change", "arrow_c3");
-            if (data.hasOwnProperty('change4_change')) setArrow("change4_change", "arrow_c4");
-            if (data.hasOwnProperty('change5_change')) setArrow("change5_change", "arrow_c5");
-        }
-
-        function update() { websocket.send(JSON.stringify({ action: "update" })); }
-    });
-</script>
-</head>
-
-<body>
 <div class="dt-card">
     <div class="dt-card-header">
         <div style="display:flex;align-items:center;gap:1rem;">
             <h3 style="margin:0;">Market Summary</h3>
-            <span class="ms-status"><span class="dot"></span> Live</span>
+            <span class="ms-status" id="ms-status"><span class="dot"></span> Live</span>
         </div>
         <div style="display:flex;align-items:center;gap:0.75rem;">
             <span style="font-size:0.75rem;color:var(--text-muted);" id="date"></span>
-            <button class="ms-btn" id="connect">Reconnect</button>
+            <button class="ms-btn" id="connect">Refresh</button>
             <button class="ms-btn" id="disconnect">Pause</button>
         </div>
     </div>
@@ -127,22 +71,22 @@
         <div class="dt-card" style="margin:0;padding:1.125rem;">
             <div class="dt-market-section-title"><span style="color:#22c55e;">&#9650;</span> Top Gainers</div>
             <div class="dt-market-row header"><div>Symbol</div><div>Price</div><div>Change</div></div>
-            <div class="dt-market-row"><div><span id="gainer1_stock" style="color:var(--accent-blue-bright);font-weight:600;font-family:var(--font-family);">&#8212;</span></div><div id="gainer1_price" style="color:var(--text-primary);">&#8212;</div><div><span id="gainer1_change" style="color:#22c55e;font-weight:700;"></span> <img src="images/arrowup.gif" width="7" height="7" border="0" style="opacity:0.6;vertical-align:middle;"/></div></div>
-            <div class="dt-market-row"><div><span id="gainer2_stock" style="color:var(--accent-blue-bright);font-weight:600;font-family:var(--font-family);">&#8212;</span></div><div id="gainer2_price" style="color:var(--text-primary);">&#8212;</div><div><span id="gainer2_change" style="color:#22c55e;font-weight:700;"></span> <img src="images/arrowup.gif" width="7" height="7" border="0" style="opacity:0.6;vertical-align:middle;"/></div></div>
-            <div class="dt-market-row"><div><span id="gainer3_stock" style="color:var(--accent-blue-bright);font-weight:600;font-family:var(--font-family);">&#8212;</span></div><div id="gainer3_price" style="color:var(--text-primary);">&#8212;</div><div><span id="gainer3_change" style="color:#22c55e;font-weight:700;"></span> <img src="images/arrowup.gif" width="7" height="7" border="0" style="opacity:0.6;vertical-align:middle;"/></div></div>
-            <div class="dt-market-row"><div><span id="gainer4_stock" style="color:var(--accent-blue-bright);font-weight:600;font-family:var(--font-family);">&#8212;</span></div><div id="gainer4_price" style="color:var(--text-primary);">&#8212;</div><div><span id="gainer4_change" style="color:#22c55e;font-weight:700;"></span> <img src="images/arrowup.gif" width="7" height="7" border="0" style="opacity:0.6;vertical-align:middle;"/></div></div>
-            <div class="dt-market-row"><div><span id="gainer5_stock" style="color:var(--accent-blue-bright);font-weight:600;font-family:var(--font-family);">&#8212;</span></div><div id="gainer5_price" style="color:var(--text-primary);">&#8212;</div><div><span id="gainer5_change" style="color:#22c55e;font-weight:700;"></span> <img src="images/arrowup.gif" width="7" height="7" border="0" style="opacity:0.6;vertical-align:middle;"/></div></div>
+            <div class="dt-market-row"><div><span id="gainer1_stock" style="color:var(--accent-blue-bright);font-weight:600;">&#8212;</span></div><div id="gainer1_price">&#8212;</div><div><span id="gainer1_change" style="color:#22c55e;font-weight:700;"></span></div></div>
+            <div class="dt-market-row"><div><span id="gainer2_stock" style="color:var(--accent-blue-bright);font-weight:600;">&#8212;</span></div><div id="gainer2_price">&#8212;</div><div><span id="gainer2_change" style="color:#22c55e;font-weight:700;"></span></div></div>
+            <div class="dt-market-row"><div><span id="gainer3_stock" style="color:var(--accent-blue-bright);font-weight:600;">&#8212;</span></div><div id="gainer3_price">&#8212;</div><div><span id="gainer3_change" style="color:#22c55e;font-weight:700;"></span></div></div>
+            <div class="dt-market-row"><div><span id="gainer4_stock" style="color:var(--accent-blue-bright);font-weight:600;">&#8212;</span></div><div id="gainer4_price">&#8212;</div><div><span id="gainer4_change" style="color:#22c55e;font-weight:700;"></span></div></div>
+            <div class="dt-market-row"><div><span id="gainer5_stock" style="color:var(--accent-blue-bright);font-weight:600;">&#8212;</span></div><div id="gainer5_price">&#8212;</div><div><span id="gainer5_change" style="color:#22c55e;font-weight:700;"></span></div></div>
         </div>
 
         <!-- Top Losers -->
         <div class="dt-card" style="margin:0;padding:1.125rem;">
             <div class="dt-market-section-title"><span style="color:#ef4444;">&#9660;</span> Top Losers</div>
             <div class="dt-market-row header"><div>Symbol</div><div>Price</div><div>Change</div></div>
-            <div class="dt-market-row"><div><span id="loser1_stock" style="color:var(--accent-blue-bright);font-weight:600;font-family:var(--font-family);">&#8212;</span></div><div id="loser1_price" style="color:var(--text-primary);">&#8212;</div><div><span id="loser1_change" style="color:#ef4444;font-weight:700;"></span> <img src="images/arrowdown.gif" width="7" height="7" border="0" style="opacity:0.6;vertical-align:middle;"/></div></div>
-            <div class="dt-market-row"><div><span id="loser2_stock" style="color:var(--accent-blue-bright);font-weight:600;font-family:var(--font-family);">&#8212;</span></div><div id="loser2_price" style="color:var(--text-primary);">&#8212;</div><div><span id="loser2_change" style="color:#ef4444;font-weight:700;"></span> <img src="images/arrowdown.gif" width="7" height="7" border="0" style="opacity:0.6;vertical-align:middle;"/></div></div>
-            <div class="dt-market-row"><div><span id="loser3_stock" style="color:var(--accent-blue-bright);font-weight:600;font-family:var(--font-family);">&#8212;</span></div><div id="loser3_price" style="color:var(--text-primary);">&#8212;</div><div><span id="loser3_change" style="color:#ef4444;font-weight:700;"></span> <img src="images/arrowdown.gif" width="7" height="7" border="0" style="opacity:0.6;vertical-align:middle;"/></div></div>
-            <div class="dt-market-row"><div><span id="loser4_stock" style="color:var(--accent-blue-bright);font-weight:600;font-family:var(--font-family);">&#8212;</span></div><div id="loser4_price" style="color:var(--text-primary);">&#8212;</div><div><span id="loser4_change" style="color:#ef4444;font-weight:700;"></span> <img src="images/arrowdown.gif" width="7" height="7" border="0" style="opacity:0.6;vertical-align:middle;"/></div></div>
-            <div class="dt-market-row"><div><span id="loser5_stock" style="color:var(--accent-blue-bright);font-weight:600;font-family:var(--font-family);">&#8212;</span></div><div id="loser5_price" style="color:var(--text-primary);">&#8212;</div><div><span id="loser5_change" style="color:#ef4444;font-weight:700;"></span> <img src="images/arrowdown.gif" width="7" height="7" border="0" style="opacity:0.6;vertical-align:middle;"/></div></div>
+            <div class="dt-market-row"><div><span id="loser1_stock" style="color:var(--accent-blue-bright);font-weight:600;">&#8212;</span></div><div id="loser1_price">&#8212;</div><div><span id="loser1_change" style="color:#ef4444;font-weight:700;"></span></div></div>
+            <div class="dt-market-row"><div><span id="loser2_stock" style="color:var(--accent-blue-bright);font-weight:600;">&#8212;</span></div><div id="loser2_price">&#8212;</div><div><span id="loser2_change" style="color:#ef4444;font-weight:700;"></span></div></div>
+            <div class="dt-market-row"><div><span id="loser3_stock" style="color:var(--accent-blue-bright);font-weight:600;">&#8212;</span></div><div id="loser3_price">&#8212;</div><div><span id="loser3_change" style="color:#ef4444;font-weight:700;"></span></div></div>
+            <div class="dt-market-row"><div><span id="loser4_stock" style="color:var(--accent-blue-bright);font-weight:600;">&#8212;</span></div><div id="loser4_price">&#8212;</div><div><span id="loser4_change" style="color:#ef4444;font-weight:700;"></span></div></div>
+            <div class="dt-market-row"><div><span id="loser5_stock" style="color:var(--accent-blue-bright);font-weight:600;">&#8212;</span></div><div id="loser5_price">&#8212;</div><div><span id="loser5_change" style="color:#ef4444;font-weight:700;"></span></div></div>
         </div>
     </div>
 
@@ -158,5 +102,78 @@
         </div>
     </div>
 </div>
-</body>
-</html>
+
+<script>
+(function() {
+    var timer = null;
+    var apiUrl = window.location.pathname.replace(/\/app.*/, '') + '/api/market';
+
+    function setEl(id, val) { var el = document.getElementById(id); if (el) el.innerHTML = val; }
+    function setArrow(id, arrowId, val) {
+        var el = document.getElementById(id); if (!el) return;
+        var arrow = document.getElementById(arrowId);
+        if (val >= 0) {
+            el.style.color = '#22c55e';
+            if (arrow) { arrow.textContent = '\u25b2'; arrow.style.color = '#22c55e'; }
+        } else {
+            el.style.color = '#ef4444';
+            if (arrow) { arrow.textContent = '\u25bc'; arrow.style.color = '#ef4444'; }
+        }
+    }
+
+    function update() {
+        fetch(apiUrl).then(function(r) { return r.json(); }).then(function(data) {
+            var status = document.getElementById('ms-status');
+            if (status) { status.className = 'ms-status'; }
+
+            // TSIA & volume
+            var tsia = data.tsia != null ? data.tsia : (data.TSIA != null ? data.TSIA : null);
+            if (tsia != null) { setEl('tsia', parseFloat(tsia).toFixed(2)); setArrow('tsia', 'tsia-arrow', parseFloat(tsia)); }
+            if (data.volume != null) setEl('volume', Math.round(data.volume).toLocaleString());
+            if (data.summaryDate) setEl('date', data.summaryDate);
+            if (data.date) setEl('date', data.date);
+
+            // Top gainers (array from REST API)
+            var g = data.topGainers || [];
+            for (var i = 0; i < 5; i++) {
+                if (g[i]) {
+                    setEl('gainer' + (i+1) + '_stock', g[i].symbol);
+                    setEl('gainer' + (i+1) + '_price', '$' + parseFloat(g[i].price).toFixed(2));
+                    setEl('gainer' + (i+1) + '_change', parseFloat(g[i].change1).toFixed(2));
+                }
+            }
+            // Top losers
+            var l = data.topLosers || [];
+            for (var i = 0; i < 5; i++) {
+                if (l[i]) {
+                    setEl('loser' + (i+1) + '_stock', l[i].symbol);
+                    setEl('loser' + (i+1) + '_price', '$' + parseFloat(l[i].price).toFixed(2));
+                    setEl('loser' + (i+1) + '_change', parseFloat(l[i].change1).toFixed(2));
+                }
+            }
+            // Recent changes (use first 5 gainers as "recent" for display)
+            var recent = g.concat(l).slice(0, 5);
+            for (var i = 0; i < 5; i++) {
+                if (recent[i]) {
+                    setEl('change' + (i+1) + '_stock', recent[i].symbol);
+                    setEl('change' + (i+1) + '_price', '$' + parseFloat(recent[i].price).toFixed(2));
+                    var ch = parseFloat(recent[i].change1);
+                    setEl('change' + (i+1) + '_change', ch.toFixed(2));
+                    setArrow('change' + (i+1) + '_change', 'arrow_c' + (i+1), ch);
+                }
+            }
+        }).catch(function() {
+            var status = document.getElementById('ms-status');
+            if (status) { status.className = 'ms-status disconnected'; status.innerHTML = '<span class="dot"></span> Error'; }
+        });
+    }
+
+    function start() { update(); timer = setInterval(update, 10000); }
+    function stop() { if (timer) { clearInterval(timer); timer = null; } }
+
+    document.getElementById('connect').addEventListener('click', function() { stop(); start(); });
+    document.getElementById('disconnect').addEventListener('click', stop);
+
+    start();
+})();
+</script>
